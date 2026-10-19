@@ -283,9 +283,11 @@ def main():
         ],
         "specialRules": {
             "classicalAlwaysOccupiesALayer": True,
+            "soloStylesAlwaysOccupy": True,
             "comment": (
-                "The design interview states a solo trait such as Maestro (Jhin) "
-                "always occupies one of the three layers."
+                "The design interview states that a solo act such as Maestro "
+                "(Jhin) always occupies one of the three layers; set 10 also "
+                "has the single-unit Mixmaster and ILLBEATS acts."
             ),
         },
         "sources": [

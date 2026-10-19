@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { LAYERS, type Layer } from '../core/types';
 import { styleColor, styleFrequency } from '../core/rules';
 import {
+  importLineup,
+  lineupFileName,
+  lineupSnapshot,
   nextStation,
   play,
   realign,
   setEra,
   setLockLoop,
   setMixMode,
+  showNotice,
   stop,
   toggleRadio,
   useDesk,
@@ -17,6 +21,7 @@ import {
 
 const state = useDesk();
 const { t, styleName } = useI18n();
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const statusLabel = computed(() => {
   if (state.status === 'playing') return t('transport.playing');
@@ -39,9 +44,41 @@ const planPills = computed(() =>
 const radioStation = computed(
   () => `${styleName(state.radio.station)} ${styleFrequency(state.radio.station)} FM`,
 );
+const radioRemaining = computed(() => {
+  const seconds = Math.max(0, state.radio.remaining);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+});
 
 function layerColor(layer: Layer): string {
   return styleColor(state.plan[layer]?.style ?? 'none');
+}
+
+function exportLineup() {
+  const blob = new Blob([JSON.stringify(lineupSnapshot(), null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = lineupFileName();
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showNotice('lineupExported');
+}
+
+async function importFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    importLineup(await file.text());
+  } catch {
+    showNotice('lineupFailed');
+  } finally {
+    input.value = '';
+  }
 }
 </script>
 
@@ -116,7 +153,9 @@ function layerColor(layer: Layer): string {
         <span class="radio-glyph" aria-hidden="true">&#9673;</span>
         <span class="radio-copy">
           <b>{{ state.radio.enabled ? t('radio.onAir') : t('radio.start') }}</b>
-          <em>{{ state.radio.enabled ? radioStation : t('radio.auto') }}</em>
+          <em>
+            {{ state.radio.enabled ? `${radioStation}  -  ${radioRemaining}` : t('radio.auto') }}
+          </em>
         </span>
         <span v-if="state.radio.enabled" class="radio-meter">
           <i :style="{ width: `${Math.round(state.radio.progress * 100)}%` }" />
@@ -130,6 +169,32 @@ function layerColor(layer: Layer): string {
       >
         <span aria-hidden="true">&#9197;</span>
       </button>
+    </div>
+
+    <div class="lineup-actions">
+      <button
+        class="ghost icon"
+        :title="t('lineup.export')"
+        :aria-label="t('lineup.export')"
+        @click="exportLineup()"
+      >
+        <span aria-hidden="true">&#8681;</span>
+      </button>
+      <button
+        class="ghost icon"
+        :title="t('lineup.import')"
+        :aria-label="t('lineup.import')"
+        @click="fileInput?.click()"
+      >
+        <span aria-hidden="true">&#8679;</span>
+      </button>
+      <input
+        ref="fileInput"
+        class="hidden-input"
+        type="file"
+        accept=".json,application/json"
+        @change="importFile"
+      />
     </div>
 
     <div class="plan-pills" :aria-label="t('desk.plan')">

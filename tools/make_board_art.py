@@ -28,7 +28,7 @@ def lerp(a, b, t):
 
 
 def vertical_gradient():
-    top, bottom = (16, 10, 26), (28, 16, 38)
+    top, bottom = (34, 20, 56), (56, 32, 82)
     column = np.zeros((H, 1, 3), dtype=np.uint8)
     for y in range(H):
         column[y, 0] = lerp(top, bottom, y / (H - 1))
@@ -54,7 +54,7 @@ def hex_grid(draw):
     radius = 66
     step_x = radius * math.sqrt(3)
     step_y = radius * 1.5
-    line = (168, 132, 226, 26)
+    line = (198, 160, 255, 42)
     row = 0
     y = -radius
     while y < H + radius:
@@ -72,10 +72,10 @@ def hex_grid(draw):
 
 
 def beams(draw):
-    for x, width, alpha in ((-140, 240, 22), (240, 150, 16), (1260, 200, 20), (1470, 120, 14)):
+    for x, width, alpha in ((-140, 240, 34), (240, 150, 24), (1260, 200, 30), (1470, 120, 22)):
         draw.polygon(
             [(x, 0), (x + width, 0), (x + width + 340, H), (x + 150, H)],
-            fill=(180, 120, 255, alpha),
+            fill=(198, 140, 255, alpha),
         )
 
 
@@ -84,7 +84,7 @@ def vignette(image):
     nx = (xx - W / 2) / (W / 2)
     ny = (yy - H / 2) / (H / 2)
     distance = np.sqrt(nx * nx + ny * ny) / math.sqrt(2)
-    shade = np.clip(1 - np.clip(distance - 0.25, 0, 1) * 0.85, 0.18, 1)
+    shade = np.clip(1 - np.clip(distance - 0.3, 0, 1) * 0.58, 0.42, 1)
     array = np.asarray(image).astype(np.float32)
     array *= shade[..., None]
     return Image.fromarray(np.clip(array, 0, 255).astype(np.uint8), "RGB")
@@ -102,9 +102,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     stage = vertical_gradient().convert("RGBA")
 
-    stage.alpha_composite(radial_glow((1200, 900), (214, 64, 178), 0.34), (-260, -180))
-    stage.alpha_composite(radial_glow((1000, 800), (48, 186, 255), 0.26), (900, -220))
-    stage.alpha_composite(radial_glow((1100, 620), (255, 196, 96), 0.16), (250, 420))
+    stage.alpha_composite(radial_glow((1200, 900), (224, 82, 190), 0.46), (-260, -180))
+    stage.alpha_composite(radial_glow((1000, 800), (64, 198, 255), 0.36), (900, -220))
+    stage.alpha_composite(radial_glow((1100, 620), (255, 206, 112), 0.24), (250, 420))
 
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)

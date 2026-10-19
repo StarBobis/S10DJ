@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import ArtImage from './ArtImage.vue';
-import StyleBadge from './StyleBadge.vue';
+import PoolCard from './PoolCard.vue';
 import { useI18n } from '../i18n';
-import { type BoardUnit, type Unit } from '../core/types';
+import { styleColor } from '../core/rules';
+import type { Unit } from '../core/types';
 import {
-  addToBoard,
   artCount,
   boardCount,
   boardLimit,
   previewUnit,
-  removeFromBoard,
   useDesk,
 } from '../stores/desk';
 
 const state = useDesk();
-const { t, championName, language } = useI18n();
+const { t, traitName } = useI18n();
 
 const query = ref('');
 const cost = ref(0);
+const groupMode = ref<'cost' | 'trait'>('cost');
+const traitFilter = ref('');
 const manualMode = computed(() => state.settings.mixMode === 'manual');
 
 const filtered = computed(() => {
@@ -37,15 +37,52 @@ const groupCounts = computed(() => {
   return [...counts.entries()].sort((a, b) => a[0] - b[0]);
 });
 
-function entryFor(apiName: string): BoardUnit | null {
-  return state.board.find((entry) => entry.apiName === apiName) ?? null;
-}
+const costGroups = computed(() => {
+  const groups = new Map<number, Unit[]>();
+  for (const unit of filtered.value) {
+    const list = groups.get(unit.cost) ?? [];
+    list.push(unit);
+    groups.set(unit.cost, list);
+  }
+  return [...groups.entries()].sort((a, b) => a[0] - b[0]);
+});
 
-function onDragStart(event: DragEvent, unit: Unit) {
-  if (!event.dataTransfer) return;
-  event.dataTransfer.effectAllowed = 'copy';
-  event.dataTransfer.setData('text/plain', `shop:${unit.apiName}`);
-}
+const traitGroups = computed(() => {
+  const groups = new Map<string, Unit[]>();
+  for (const unit of filtered.value) {
+    for (const trait of unit.traits) {
+      const list = groups.get(trait) ?? [];
+      list.push(unit);
+      groups.set(trait, list);
+    }
+  }
+  return [...groups.entries()]
+    .map(([trait, units]) => {
+      const style = state.rules?.traitDisplayStyle?.[trait] ?? null;
+      return {
+        trait,
+        units,
+        style,
+        color: styleColor(style ?? 'none'),
+      };
+    })
+    .sort((a, b) => {
+      if (Boolean(a.style) !== Boolean(b.style)) return a.style ? -1 : 1;
+      return b.units.length - a.units.length || traitName(a.trait).localeCompare(traitName(b.trait));
+    });
+});
+
+const traitOptions = computed(() =>
+  [...traitGroups.value].sort((a, b) =>
+    traitName(a.trait).localeCompare(traitName(b.trait)),
+  ),
+);
+
+const visibleTraitGroups = computed(() =>
+  traitFilter.value
+    ? traitGroups.value.filter((group) => group.trait === traitFilter.value)
+    : traitGroups.value,
+);
 </script>
 
 <template>
@@ -65,6 +102,18 @@ function onDragStart(event: DragEvent, unit: Unit) {
       <input v-model="query" type="search" :placeholder="t('desk.search')" spellcheck="false" />
     </label>
 
+    <div class="pool-group-toggle">
+      <span class="control-label">{{ t('pool.groupBy') }}</span>
+      <div class="segmented">
+        <button :class="{ active: groupMode === 'cost' }" @click="groupMode = 'cost'">
+          {{ t('pool.cost') }}
+        </button>
+        <button :class="{ active: groupMode === 'trait' }" @click="groupMode = 'trait'">
+          {{ t('pool.trait') }}
+        </button>
+      </div>
+    </div>
+
     <div class="cost-filter">
       <button class="cost-chip" :class="{ active: cost === 0 }" @click="cost = 0">
         {{ t('desk.all') }}
@@ -80,37 +129,47 @@ function onDragStart(event: DragEvent, unit: Unit) {
       </button>
     </div>
 
+    <select v-if="groupMode === 'trait'" v-model="traitFilter" class="pool-trait-select">
+      <option value="">{{ t('pool.allTraits') }}</option>
+      <option v-for="group in traitOptions" :key="group.trait" :value="group.trait">
+        {{ traitName(group.trait) }} ({{ group.units.length }})
+      </option>
+    </select>
+
     <div class="pool-scroll" @mouseleave="previewUnit(null)">
-      <div v-if="filtered.length" class="pool-grid">
-        <button
-          v-for="unit in filtered"
-          :key="unit.apiName"
-          class="pool-card"
-          :class="{ owned: Boolean(entryFor(unit.apiName)) }"
-          draggable="true"
-          :title="`${championName(unit)} - ${unit.cost}g`"
-          @click="addToBoard(unit.apiName)"
-          @contextmenu.prevent="removeFromBoard(unit.apiName)"
-          @mouseenter="previewUnit(unit.apiName)"
-          @focus="previewUnit(unit.apiName)"
-          @dragstart="onDragStart($event, unit)"
+      <template v-if="groupMode === 'cost'">
+        <section v-for="[value, units] in costGroups" :key="value" class="pool-group">
+          <header class="pool-group-head">
+            <span class="cost-tag" :class="`cost-${value}`">{{ value }}g</span>
+            <i>{{ units.length }}</i>
+          </header>
+          <div class="pool-grid">
+            <PoolCard v-for="unit in units" :key="unit.apiName" :unit="unit" />
+          </div>
+        </section>
+      </template>
+      <template v-else>
+        <section
+          v-for="group in visibleTraitGroups"
+          :key="group.trait"
+          class="pool-group"
+          :style="{ '--trait': group.color }"
         >
-          <span class="pool-banner">
-            <ArtImage class="pool-banner-art" :art="unit.art" :alt="championName(unit)" />
-            <span class="pool-banner-shade" />
-            <span class="pool-cost" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}</span>
-            <span v-if="entryFor(unit.apiName)" class="pool-star">
-              {{ '\u2605'.repeat(entryFor(unit.apiName)?.star ?? 1) }}
-            </span>
-            <span class="pool-name">{{ championName(unit) }}</span>
-          </span>
-          <span class="pool-meta">
-            <StyleBadge :style="unit.style" small />
-            <span v-if="language === 'zh-CN'" class="pool-en">{{ unit.name }}</span>
-          </span>
-        </button>
-      </div>
-      <p v-else class="hint">{{ t('desk.noResults') }}</p>
+          <header class="pool-group-head trait-group-head">
+            <span class="trait-group-dot" />
+            <b>{{ traitName(group.trait) }}</b>
+            <em v-if="group.style">{{ t('desk.mix') }}</em>
+            <i>{{ group.units.length }}</i>
+          </header>
+          <div class="pool-grid">
+            <PoolCard v-for="unit in group.units" :key="`${group.trait}:${unit.apiName}`" :unit="unit" />
+          </div>
+        </section>
+      </template>
+      <p v-if="!filtered.length" class="hint">{{ t('desk.noResults') }}</p>
+      <p v-else-if="groupMode === 'trait' && !visibleTraitGroups.length" class="hint">
+        {{ t('desk.noResults') }}
+      </p>
     </div>
 
     <footer class="pool-footer">

@@ -67,13 +67,44 @@ trait api uses suffixes (`Set10_KDA`). `music_rules.json` carries both views
 (`traitDisplayStyle` and `traitToStyle`); the rules engine uses the display-name
 map, which is why breakpoint bonuses show up in the UI and in the mix.
 
+## Rule audit
+
+What is confirmed from the shipped data and Riot's design interview:
+
+* **33 music switches** - the 13.24 `Map22.wad.client` switch table lists exactly
+  the 16 styles x their supported layers shown above. `ILLBEATS` does have both
+  `drums` and `top` switches even though some summaries omit the second one.
+* **Unit count is the trigger, breakpoint tier raises the share** - Riot moved
+  from "activated trait only" to unit counts so class-trait comps still get
+  music, then combined trait tier with unit count. The desk models
+  `weight(style) = units(style) + tierIndex`, picks the heaviest style per
+  layer, and breaks equal weights by higher tier first, then the shipped
+  priority order.
+* **Solo acts always take a layer** - the interview names Maestro (Jhin); set 10
+  also has the single-unit Mixmaster (Sona) and ILLBEATS (Illaoi) acts. All three
+  are spotlighted before the normal layer winners.
+* **Headliner adds +1 to a chosen trait** - implemented in trait counts and
+  exported in lineup files.
+* **Base track fills unused layers** - `none` is the fallback for a layer no
+  style occupies.
+
+What the desk does **not** model, because it is outside the extracted data or
+the app's scope:
+
+* emblems, augments and portals that add traits or champions;
+* Wwise phase music (`Draft` / `Prepare` / `Locked` / `Battle`) and stingers;
+* the native client's exact numeric tie-break beyond the evidence above.
+
+The Settings page includes the same audit so the assumptions are visible in the
+app instead of hidden in code.
+
 ## The desk
 
 * **Sidebar** - the desk at the top, the collapse toggle and Settings pinned to
   the bottom. The title bar is only the drag region, brand and window buttons.
 * **Champion pool** - the extracted TFT champion banner, localized name, cost
-  and style. Filter by cost, search in English or Chinese, click to deploy or
-  right-click to remove.
+  and style. Group by cost or by trait, search in English or Chinese, click to
+  deploy or right-click to remove.
 * **Hex board** - 4 x 7 hexes. Click to select, **drag to move or swap**,
   double-click to star up (1-3), right-click to remove. Each copy bought adds a
   star, and a champion counts once for traits no matter its star level.
@@ -84,13 +115,20 @@ map, which is why breakpoint bonuses show up in the UI and in the mix.
 * **Mixing desk** - one channel per layer with an on/off switch, vertical fader,
   style override and the exact `Set_Switch_set10_*` name. The header carries a
   live waveform/spectrum analyser.
-* **Radio** - one click builds a themed board, starts playback and keeps
-  rotating stations (`12 s`) and eras. `Next station` skips immediately; stop
-  restores the board, selection, era and layer settings you had before.
-* **Style Lab** - a no-champion mode for composing styles directly. Pick a style
-  per layer, click a style to apply it to all its layers, or use a curated combo
-  such as **Jazz + True Damage**. Champion data is ignored while manual mode is
-  active, and clicking a champion returns to board mode.
+* **Radio** - one click builds a themed board, starts playback and keeps the
+  station for a full 2:45 track before rotating styles and eras. `Next station`
+  skips immediately; stop restores the board, selection, era and layer settings
+  you had before.
+* **Style Lab** - a no-champion mode for composing styles directly. It generates
+  all **458 usable 1-3 style combinations**, supports per-style and per-combo
+  likes with persisted ranking, and pins Jhin (Maestro) combinations above the
+  rest until a liked non-Jhin combo overtakes them. A curated pair such as
+  **Jazz + True Damage** is loaded when the lab opens. Clicking a champion
+  returns to board mode.
+* **Headliner** - a board unit can be marked as a Headliner and give its chosen
+  trait +1, matching the set mechanic that pushes trait breakpoints.
+* **Lineup files** - export the current board, stars, Headliner, era, mix mode
+  and layer settings to a JSON file, then import it on another run.
 * **Global wallpaper** - selecting a champion crossfades its set splash behind
   the whole app; every panel is translucent and blurred over it.
 
@@ -107,6 +145,8 @@ bun run app:build  # installable bundle
 In the desk: add units on the left, press **Play**, then toggle layers, move
 faders or pin a style while the music keeps running. **Settings** switches the
 language, the default era, loop behaviour and runs the audio diagnostics.
+The two arrows in the transport export and import a lineup JSON file; the file
+keeps stars, Headliner choice, era, mix mode and all layer settings.
 
 The game ships an early and a late render of every stem, so the era selector
 swaps the whole set. With **Lock loop** on, all voices wrap at the shortest
@@ -153,13 +193,14 @@ UI renders Chinese. `src/i18n/index.ts` exposes `championName`, `traitName` and
 data/set10_units.json        60 units with cost, traits, style, art and nameZh
 data/music_rules.json        styles, layers, thresholds, stems and Chinese names
 src/core/rules.ts            weight + layer assignment + style palette
-src/core/combos.ts           curated no-champion layer combinations
+src/core/combos.ts           all 458 usable style combinations and assignments
 src/core/audio.ts            Web Audio mixer + master analyser
 src/core/data.ts             data loading, Tauri commands, stem URLs
 src/core/art.ts              banner, wallpaper and stage lookup
-src/stores/desk.ts           board editing, manual mix, radio, transport
+src/stores/desk.ts           board editing, manual mix, radio, transport, lineup
+src/stores/likes.ts          persisted style/combo likes and ranking
 src/components/              desk, pool, board, spotlight, traits, mixer,
-                             StyleLab, Waveform, GlobalWallpaper
+                             StyleLab, PoolCard, Waveform, GlobalWallpaper
 src/assets/heroes/banner/    60 TFT champion banners
 src/assets/heroes/wallpaper/ 60 square set splashes
 src/assets/board/            generated stage backdrop and grain
@@ -185,5 +226,7 @@ Riot shipped for the set; `src/assets/heroes/credits.json` records every URL.
 The layer *inventory* and switch ids are read straight from the shipped data.
 The weighting rule is a reconstruction: unit counts and tier bonuses are
 confirmed by Riot's interview, while the exact tie-breaking and the way partial
-bands split layers are inferred - which is why each layer has a manual override
-and the Style Lab exists.
+bands split layers are inferred - which is why each layer has a manual override,
+the Style Lab exists and Settings shows the audit. Likes are local to this
+installation (no account or network backend); they reorder the generated
+combinations on this machine.

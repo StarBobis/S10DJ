@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n, type MessageKey } from '../i18n';
-import { STYLE_COMBOS } from '../core/combos';
 import { styleColor, styleFrequency, styleGlyph } from '../core/rules';
 import { LAYERS, type Layer } from '../core/types';
 import {
@@ -9,8 +8,18 @@ import {
   clearManualStyles,
   setMixMode,
   setOverride,
+  styleCombos,
   useDesk,
 } from '../stores/desk';
+import {
+  comboScore,
+  comboLikes,
+  isComboLiked,
+  isStyleLiked,
+  styleLikes,
+  toggleComboLike,
+  toggleStyleLike,
+} from '../stores/likes';
 import StyleBadge from './StyleBadge.vue';
 
 const state = useDesk();
@@ -21,6 +30,8 @@ const LAYER_LABEL: Record<Layer, MessageKey> = {
   chords: 'layer.chords',
   top: 'layer.top',
 };
+
+const comboFilter = ref<'all' | 'maestro' | 'liked'>('all');
 
 const layerStyles = computed(() => {
   const map = {} as Record<Layer, string[]>;
@@ -39,17 +50,6 @@ const allStyles = computed(() =>
     .sort((a, b) => styleName(a).localeCompare(styleName(b))),
 );
 
-const combos = computed(() =>
-  STYLE_COMBOS.map((combo) => ({
-    id: combo.id,
-    layers: combo.layers,
-    styles: [...new Set(Object.values(combo.layers))],
-    label: [...new Set(Object.values(combo.layers))]
-      .map((style) => styleName(style))
-      .join(' + '),
-  })),
-);
-
 const currentPlan = computed(() =>
   LAYERS.map((layer) => {
     const style = state.plan[layer]?.style ?? 'none';
@@ -61,6 +61,47 @@ const currentPlan = computed(() =>
     };
   }),
 );
+
+function comboLabel(combo: { layers: Record<Layer, string> }): string {
+  const seen = new Set<string>();
+  const labels: string[] = [];
+  for (const layer of LAYERS) {
+    const style = combo.layers[layer];
+    if (seen.has(style)) continue;
+    seen.add(style);
+    labels.push(styleName(style));
+  }
+  return labels.join(' + ');
+}
+
+function comboHasMaestro(combo: { styles: string[] }): boolean {
+  return combo.styles.includes('classical');
+}
+
+const rankedCombos = computed(() =>
+  [...styleCombos.value]
+    .map((combo) => ({
+      combo,
+      label: comboLabel(combo),
+      score: comboScore(combo),
+      maestro: comboHasMaestro(combo),
+    }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.maestro !== b.maestro) return a.maestro ? -1 : 1;
+      return a.label.localeCompare(b.label);
+    }),
+);
+
+const visibleCombos = computed(() => {
+  if (comboFilter.value === 'maestro') {
+    return rankedCombos.value.filter((item) => item.maestro);
+  }
+  if (comboFilter.value === 'liked') {
+    return rankedCombos.value.filter((item) => isComboLiked(item.combo.id));
+  }
+  return rankedCombos.value;
+});
 
 function currentStyle(layer: Layer): string {
   return state.settings.layers[layer].override ?? 'none';
@@ -146,37 +187,79 @@ function styleLayers(style: string): Layer[] {
       </article>
     </div>
 
-    <h3>{{ t('lab.combos') }}</h3>
+    <div class="lab-section-head">
+      <h3>
+        {{ t('lab.combos') }}
+        <span class="lab-count">{{ rankedCombos.length }}</span>
+      </h3>
+      <div class="lab-filters">
+        <button :class="{ active: comboFilter === 'all' }" @click="comboFilter = 'all'">
+          {{ t('lab.filterAll') }}
+        </button>
+        <button :class="{ active: comboFilter === 'maestro' }" @click="comboFilter = 'maestro'">
+          {{ t('lab.filterMaestro') }}
+        </button>
+        <button :class="{ active: comboFilter === 'liked' }" @click="comboFilter = 'liked'">
+          {{ t('lab.filterLiked') }}
+        </button>
+      </div>
+    </div>
+
     <div class="lab-combos">
-      <button
-        v-for="combo in combos"
-        :key="combo.id"
+      <div
+        v-for="item in visibleCombos"
+        :key="item.combo.id"
         class="lab-combo"
-        :title="combo.label"
-        @click="applyCombo(combo.id)"
+        :class="{ featured: item.maestro, liked: isComboLiked(item.combo.id) }"
+        role="button"
+        tabindex="0"
+        :title="item.label"
+        @click="applyCombo(item.combo.id)"
+        @keydown.enter.prevent="applyCombo(item.combo.id)"
+        @keydown.space.prevent="applyCombo(item.combo.id)"
       >
-        <span class="lab-combo-label">{{ combo.label }}</span>
-        <span class="lab-combo-layers">
-          <i
-            v-for="layer in LAYERS"
-            :key="layer"
-            :style="{ '--style': styleColor(combo.layers[layer]) }"
-          >
-            {{ t(LAYER_LABEL[layer]) }}
-          </i>
+        <span class="lab-combo-main">
+          <span class="lab-combo-label">
+            {{ item.label }}
+            <em v-if="item.maestro">{{ t('lab.maestroBadge') }}</em>
+          </span>
+          <span class="lab-combo-layers">
+            <i
+              v-for="layer in LAYERS"
+              :key="layer"
+              :style="{ '--style': styleColor(item.combo.layers[layer]) }"
+            >
+              {{ t(LAYER_LABEL[layer]) }}
+            </i>
+          </span>
         </span>
-      </button>
+        <button
+          class="like-button"
+          :class="{ active: isComboLiked(item.combo.id) }"
+          :title="isComboLiked(item.combo.id) ? t('lab.unlike') : t('lab.like')"
+          @click.stop="toggleComboLike(item.combo.id)"
+        >
+          <span aria-hidden="true">{{ isComboLiked(item.combo.id) ? '\u2665' : '\u2661' }}</span>
+          {{ comboLikes(item.combo.id) }}
+        </button>
+      </div>
+      <p v-if="!visibleCombos.length" class="hint">{{ t('lab.noLiked') }}</p>
     </div>
 
     <h3>{{ t('lab.styles') }}</h3>
     <div class="lab-styles">
-      <button
+      <div
         v-for="style in allStyles"
         :key="style"
         class="lab-style"
+        :class="{ liked: isStyleLiked(style) }"
         :style="{ '--style': styleColor(style) }"
+        role="button"
+        tabindex="0"
         :title="`${styleName(style)} ${styleFrequency(style)} FM`"
         @click="useStyle(style)"
+        @keydown.enter.prevent="useStyle(style)"
+        @keydown.space.prevent="useStyle(style)"
       >
         <span class="lab-style-glyph" aria-hidden="true">{{ styleGlyph(style) }}</span>
         <span class="lab-style-text">
@@ -186,7 +269,16 @@ function styleLayers(style: string): Layer[] {
         <span class="lab-style-layers">
           <i v-for="layer in styleLayers(style)" :key="layer">{{ t(LAYER_LABEL[layer]) }}</i>
         </span>
-      </button>
+        <button
+          class="like-button"
+          :class="{ active: isStyleLiked(style) }"
+          :title="isStyleLiked(style) ? t('lab.unlike') : t('lab.like')"
+          @click.stop="toggleStyleLike(style)"
+        >
+          <span aria-hidden="true">{{ isStyleLiked(style) ? '\u2665' : '\u2661' }}</span>
+          {{ styleLikes(style) }}
+        </button>
+      </div>
     </div>
 
     <p class="hint lab-note">{{ t('lab.noChampions') }}</p>

@@ -20,7 +20,7 @@ import {
   tierProgress,
   traitCounts,
 } from '../core/rules';
-import { STYLE_COMBOS } from '../core/combos';
+import { buildStyleCombos, defaultCombo, type StyleCombo } from '../core/combos';
 import { heroArtCount } from '../core/art';
 import {
   BOARD_COLUMNS,
@@ -32,6 +32,8 @@ import {
   type BoardUnit,
   type Era,
   type Layer,
+  type LineupFile,
+  type LineupUnit,
   type Plan,
   type RulesFile,
   type Settings,
@@ -39,15 +41,23 @@ import {
   type Unit,
 } from '../core/types';
 
-export type NoticeCode = 'boardFull' | 'maxStars' | 'notPlaying' | '';
+export type NoticeCode =
+  | 'boardFull'
+  | 'maxStars'
+  | 'notPlaying'
+  | 'lineupExported'
+  | 'lineupImported'
+  | 'lineupFailed'
+  | '';
 
-const RADIO_INTERVAL = 12000;
+const RADIO_INTERVAL = 165000;
 
 interface RadioState {
   enabled: boolean;
   station: string;
   beat: number;
   progress: number;
+  remaining: number;
   nextAt: number;
   queue: string[];
 }
@@ -56,6 +66,7 @@ const state = reactive({
   ready: false,
   error: '' as string,
   notice: '' as NoticeCode,
+  noticeCount: 0,
   units: [] as Unit[],
   rules: null as RulesFile | null,
   board: [] as BoardUnit[],
@@ -75,6 +86,7 @@ const state = reactive({
     station: 'none',
     beat: 0,
     progress: 0,
+    remaining: 0,
     nextAt: 0,
     queue: [],
   } as RadioState,
@@ -103,11 +115,13 @@ interface RadioBackup {
 
 let radioBackup: RadioBackup | null = null;
 
-function notify(code: NoticeCode) {
+function notify(code: NoticeCode, count = 0) {
   state.notice = code;
+  state.noticeCount = count;
   if (noticeTimer) clearTimeout(noticeTimer);
   noticeTimer = setTimeout(() => {
     state.notice = '';
+    state.noticeCount = 0;
     noticeTimer = null;
   }, 2600);
 }
@@ -118,6 +132,10 @@ function persist(delay = 180) {
     saveTimer = null;
     void saveSettings(state.settings);
   }, delay);
+}
+
+export function showNotice(code: NoticeCode, count = 0) {
+  notify(code, count);
 }
 
 function styleLayers(): Record<string, Layer[]> {
@@ -131,6 +149,26 @@ function styleLayers(): Record<string, Layer[]> {
 function traitStyles(): Record<string, string> {
   return state.rules?.traitDisplayStyle ?? state.rules?.traitToStyle ?? {};
 }
+
+/**
+ * Styles whose trait is a single-unit act. The patch 13.24 interview states
+ * these always occupy one of the three layers; set 10 has Maestro, Mixmaster
+ * and ILLBEATS.
+ */
+function soloSpotlightStyles(): string[] {
+  const result = new Set<string>();
+  for (const [trait, style] of Object.entries(traitStyles())) {
+    const steps = state.rules?.traitThresholds?.[trait];
+    if (steps?.length === 1 && steps[0] <= 1) result.add(style);
+  }
+  return [...result];
+}
+
+/** All valid 1-3 style groups; recomputed only when the rules change. */
+export const styleCombos = computed<StyleCombo[]>(() => {
+  if (!state.rules) return [];
+  return buildStyleCombos(styleLayers());
+});
 
 /** Stem file for a style/layer/era, falling back to the other era. */
 export function fileFor(style: string, layer: Layer, era: Era): string | null {
@@ -242,6 +280,13 @@ function recompute() {
     state.tiers = {};
   } else {
     state.traits = traitCounts(units);
+    // A Headliner adds +1 to one of its traits. Only one Headliner can exist.
+    for (const entry of state.board) {
+      if (!entry.headliner) continue;
+      const unit = unitByApi(entry.apiName);
+      if (!unit?.traits.includes(entry.headliner)) continue;
+      state.traits[entry.headliner] = (state.traits[entry.headliner] ?? 0) + 1;
+    }
     state.tiers = activeTiers(state.traits, state.rules.traitThresholds ?? {});
   }
   const overrides: Partial<Record<Layer, string | null>> = {};
@@ -252,7 +297,8 @@ function recompute() {
     priority: state.rules.priority ?? [],
     tiers: state.tiers,
     overrides,
-    spotlightAlwaysOccupies: state.rules.specialRules?.classicalAlwaysOccupiesALayer !== false,
+    soloStyles: soloSpotlightStyles(),
+    soloSpotlight: state.rules.specialRules?.soloStylesAlwaysOccupy !== false,
   });
   state.plan = plan;
   state.weights = weights;
@@ -302,7 +348,7 @@ export function addToBoard(apiName: string, slot?: number): void {
       ? slot
       : SLOT_ORDER.find((candidate) => isFree(candidate));
   if (target === undefined) return;
-  state.board.push({ apiName, star: 1, slot: target });
+  state.board.push({ apiName, star: 1, slot: target, headliner: null });
   state.selected = apiName;
 }
 
@@ -334,6 +380,24 @@ export function upgradeBoardUnit(apiName: string): void {
   entry.star += 1;
 }
 
+/** Assign the Headliner +1 to one of the unit's traits (or clear it). */
+export function setHeadliner(apiName: string, trait: string | null): void {
+  stopRadio(false);
+  const entry = state.board.find((item) => item.apiName === apiName);
+  if (!entry) return;
+  if (!trait) {
+    entry.headliner = null;
+    recompute();
+    return;
+  }
+  const unit = unitByApi(apiName);
+  if (!unit?.traits.includes(trait)) return;
+  for (const other of state.board) other.headliner = null;
+  entry.headliner = trait;
+  entry.star = Math.max(entry.star, 2);
+  recompute();
+}
+
 export function clearBoard(): void {
   stopRadio(false);
   state.board = [];
@@ -362,8 +426,8 @@ export function setMixMode(mode: Settings['mixMode']): void {
     for (const layer of LAYERS) state.settings.layers[layer].enabled = true;
     const complete = LAYERS.every((layer) => Boolean(state.settings.layers[layer].override));
     if (!complete) {
-      const combo = STYLE_COMBOS[0];
-      for (const layer of LAYERS) state.settings.layers[layer].override = combo.layers[layer];
+      const combo = defaultCombo(styleCombos.value);
+      if (combo) for (const layer of LAYERS) state.settings.layers[layer].override = combo.layers[layer];
     }
   }
   recompute();
@@ -371,7 +435,7 @@ export function setMixMode(mode: Settings['mixMode']): void {
 }
 
 export function applyCombo(id: string): void {
-  const combo = STYLE_COMBOS.find((item) => item.id === id);
+  const combo = styleCombos.value.find((item) => item.id === id);
   if (!combo) return;
   if (state.radio.enabled) stopRadio(false);
   state.settings.mixMode = 'manual';
@@ -424,6 +488,7 @@ function radioBoard(style: string): BoardUnit[] {
     apiName: unit.apiName,
     star: Math.random() < 0.08 ? 3 : Math.random() < 0.3 ? 2 : 1,
     slot: slots[index],
+    headliner: null,
   }));
 }
 
@@ -431,6 +496,7 @@ function updateRadioProgress() {
   if (!state.radio.enabled) return;
   const remaining = Math.max(0, state.radio.nextAt - Date.now());
   state.radio.progress = Math.min(1, Math.max(0, 1 - remaining / RADIO_INTERVAL));
+  state.radio.remaining = Math.ceil(remaining / 1000);
 }
 
 function radioBeat(): void {
@@ -448,6 +514,7 @@ function radioBeat(): void {
   state.preview = null;
   state.radio.nextAt = Date.now() + RADIO_INTERVAL;
   state.radio.progress = 0;
+  state.radio.remaining = Math.round(RADIO_INTERVAL / 1000);
   recompute();
 }
 
@@ -478,6 +545,7 @@ export function stopRadio(restore = true): void {
   if (!state.radio.enabled && !radioBackup) return;
   state.radio.enabled = false;
   state.radio.progress = 0;
+  state.radio.remaining = 0;
   state.radio.nextAt = 0;
   state.radio.station = 'none';
   if (radioTimer) {
@@ -611,6 +679,111 @@ export function useDesk() {
   return state;
 }
 
+/* ---------- lineup files ---------- */
+
+export function lineupSnapshot(): LineupFile {
+  return {
+    format: 'set10-desk-lineup',
+    version: 1,
+    set: 10,
+    patch: state.rules?.patch ?? '13.24',
+    savedAt: new Date().toISOString(),
+    era: state.settings.era,
+    mixMode: state.settings.mixMode,
+    selected: state.selected,
+    units: state.board.map((entry) => ({
+      apiName: entry.apiName,
+      star: entry.star,
+      slot: entry.slot,
+      headliner: entry.headliner ?? null,
+    })),
+    layers: JSON.parse(JSON.stringify(state.settings.layers)) as Settings['layers'],
+  };
+}
+
+export function lineupFileName(): string {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
+  return `set10-lineup-${stamp}.json`;
+}
+
+function readLayers(raw: unknown): Settings['layers'] {
+  const result = JSON.parse(JSON.stringify(state.settings.layers)) as Settings['layers'];
+  if (!raw || typeof raw !== 'object') return result;
+  for (const layer of LAYERS) {
+    const source = (raw as Record<string, unknown>)[layer];
+    if (!source || typeof source !== 'object') continue;
+    const value = source as Record<string, unknown>;
+    if (typeof value.enabled === 'boolean') result[layer].enabled = value.enabled;
+    if (typeof value.volume === 'number') {
+      result[layer].volume = Math.min(1, Math.max(0, value.volume));
+    }
+    if (value.override === null || typeof value.override === 'string') {
+      const style = value.override as string | null;
+      result[layer].override =
+        style && state.rules?.styles?.[style]?.layers.includes(layer) ? style : null;
+    }
+  }
+  return result;
+}
+
+/** Apply a lineup file. Throws on malformed JSON or a foreign format. */
+export function importLineup(text: string): number {
+  const parsed = JSON.parse(text) as Partial<LineupFile>;
+  if (parsed.format !== 'set10-desk-lineup' || !Array.isArray(parsed.units)) {
+    throw new Error('not a set10 desk lineup');
+  }
+  stopRadio(false);
+  const units: LineupUnit[] = [];
+  const usedSlots = new Set<number>();
+  const seen = new Set<string>();
+  let headlinerTaken = false;
+
+  for (const raw of parsed.units as unknown[]) {
+    if (units.length >= MAX_BOARD_UNITS) break;
+    if (!raw || typeof raw !== 'object') continue;
+    const value = raw as Record<string, unknown>;
+    const apiName = typeof value.apiName === 'string' ? value.apiName : '';
+    const unit = unitByApi(apiName);
+    if (!unit || seen.has(apiName)) continue;
+    const star = Math.min(
+      MAX_STARS,
+      Math.max(1, Math.floor(typeof value.star === 'number' ? value.star : 1)),
+    );
+    let slot = typeof value.slot === 'number' ? Math.floor(value.slot) : -1;
+    if (slot < 0 || slot >= BOARD_SLOTS || usedSlots.has(slot)) {
+      slot = SLOT_ORDER.find((candidate) => !usedSlots.has(candidate)) ?? -1;
+    }
+    if (slot < 0) continue;
+    let headliner: string | null = null;
+    if (
+      !headlinerTaken &&
+      typeof value.headliner === 'string' &&
+      unit.traits.includes(value.headliner)
+    ) {
+      headliner = value.headliner;
+      headlinerTaken = true;
+    }
+    units.push({ apiName, star, slot, headliner });
+    usedSlots.add(slot);
+    seen.add(apiName);
+  }
+
+  state.board = units;
+  state.settings.era =
+    parsed.era === 'early' || parsed.era === 'late' ? parsed.era : state.settings.era;
+  state.settings.mixMode = parsed.mixMode === 'manual' ? 'manual' : 'board';
+  state.settings.layers = readLayers(parsed.layers);
+  const wanted = parsed.selected ?? '';
+  state.selected = units.some((entry) => entry.apiName === wanted)
+    ? wanted
+    : (units[0]?.apiName ?? null);
+  state.preview = null;
+  recompute();
+  persist();
+  notify('lineupImported', units.length);
+  return units.length;
+}
+
 /** Analyser attached to the master bus, used by the waveform display. */
 export function mixerAnalyser(): AnalyserNode | null {
   return mixer.analyser;
@@ -669,7 +842,7 @@ function scheduleApply() {
 }
 
 watch(
-  () => state.board.map((entry) => `${entry.apiName}:${entry.star}:${entry.slot}`).join('|'),
+  () => state.board.map((entry) => `${entry.apiName}:${entry.star}:${entry.slot}:${entry.headliner ?? ''}`).join('|'),
   () => recompute(),
 );
 

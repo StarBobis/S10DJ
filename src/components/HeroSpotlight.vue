@@ -8,6 +8,7 @@ import {
   focusBoardUnit,
   focusUnit,
   removeFromBoard,
+  setHeadliner,
   upgradeBoardUnit,
   useDesk,
 } from '../stores/desk';
@@ -34,6 +35,12 @@ function upgrade() {
 function remove() {
   if (entry.value) removeFromBoard(entry.value.apiName);
 }
+
+function onHeadliner(event: Event) {
+  if (!entry.value) return;
+  const value = (event.target as HTMLSelectElement).value;
+  setHeadliner(entry.value.apiName, value || null);
+}
 </script>
 
 <template>
@@ -44,6 +51,9 @@ function remove() {
         <span class="spot-banner-shade" />
         <span class="spot-cost" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}g</span>
         <span v-if="entry" class="spot-stars">{{ '\u2605'.repeat(entry.star) }}</span>
+        <span v-if="entry?.headliner" class="spot-crown" :title="traitName(entry.headliner)">
+          &#9819; {{ traitName(entry.headliner) }}
+        </span>
         <div class="spot-banner-text">
           <h2>{{ championName(unit) }}</h2>
           <span v-if="language === 'zh-CN'" class="spot-en">{{ unit.name }}</span>
@@ -64,6 +74,16 @@ function remove() {
             {{ traitName(chip.trait) }}
           </span>
         </div>
+
+        <label v-if="entry" class="spot-headliner">
+          <span>{{ t('desk.headliner') }}</span>
+          <select :value="entry.headliner ?? ''" @change="onHeadliner">
+            <option value="">{{ t('desk.headlinerNone') }}</option>
+            <option v-for="trait in unit.traits" :key="trait" :value="trait">
+              {{ traitName(trait) }}
+            </option>
+          </select>
+        </label>
 
         <footer class="spot-actions">
           <template v-if="entry">

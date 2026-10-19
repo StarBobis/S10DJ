@@ -31,7 +31,8 @@
  ],
  "specialRules": {
   "classicalAlwaysOccupiesALayer": true,
-  "comment": "The design interview states a solo trait such as Maestro (Jhin) always occupies one of the three layers."
+  "comment": "The design interview states that a solo act such as Maestro (Jhin) always occupies one of the three layers; set 10 also has the single-unit Mixmaster and ILLBEATS acts.",
+  "soloStylesAlwaysOccupy": true
  },
  "stems": {
   "8bit": {

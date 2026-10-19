@@ -137,6 +137,9 @@ function remove(cell: Cell) {
                 <span class="hex-shade" />
                 <span class="hex-cost">{{ cell.unit.cost }}</span>
                 <span class="hex-stars">{{ '\u2605'.repeat(cell.entry.star) }}</span>
+                <span v-if="cell.entry.headliner" class="hex-crown" :title="cell.entry.headliner">
+                  &#9819;
+                </span>
                 <span class="hex-label">
                   <b>{{ championName(cell.unit) }}</b>
                   <em>{{ styleName(cell.unit.style) }}</em>

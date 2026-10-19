@@ -14,10 +14,16 @@ import {
 } from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, styleName } = useI18n();
 
 const missing = computed(() => missingStems());
 const stemCount = computed(() => stemsAvailable());
+const switchCount = computed(() =>
+  Object.values(state.rules?.styles ?? {}).reduce((sum, info) => sum + info.layers.length, 0),
+);
+const soloNames = computed(() =>
+  ['classical', 'dj', 'illbeats'].map((style) => styleName(style)).join(' / '),
+);
 
 function onLanguage(event: Event) {
   setLanguage((event.target as HTMLSelectElement).value as 'en' | 'zh-CN');
@@ -104,6 +110,24 @@ function onMaster(event: Event) {
           {{ t('settings.testFailed', { list: state.testing.failed.join(', ') }) }}
         </span>
       </p>
+    </section>
+
+    <section class="rules-audit">
+      <h3>{{ t('settings.rulesAudit') }}</h3>
+      <dl class="facts">
+        <dt>{{ t('settings.rulesSwitches') }}</dt>
+        <dd>{{ switchCount }}</dd>
+        <dt>{{ t('settings.rulesModel') }}</dt>
+        <dd>{{ t('settings.rulesModelValue') }}</dd>
+        <dt>{{ t('settings.rulesSolo') }}</dt>
+        <dd>{{ soloNames }}</dd>
+        <dt>{{ t('settings.rulesHeadliner') }}</dt>
+        <dd>{{ t('settings.rulesHeadlinerValue') }}</dd>
+        <dt>{{ t('settings.rulesLimits') }}</dt>
+        <dd>{{ t('settings.rulesLimitsValue') }}</dd>
+        <dt>{{ t('settings.rulesSources') }}</dt>
+        <dd>{{ t('settings.rulesSourcesValue') }}</dd>
+      </dl>
     </section>
 
     <p class="hint">{{ t('settings.about') }}</p>

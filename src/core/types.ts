@@ -28,6 +28,8 @@ export interface BoardUnit {
   star: number;
   /** Index into the hex board, 0..BOARD_SLOTS-1. */
   slot: number;
+  /** Display trait that received the Headliner +1, if this unit is a Headliner. */
+  headliner?: string | null;
 }
 
 export interface RulesFile {
@@ -85,6 +87,27 @@ export interface StemScan {
   files: string[];
   durations: Record<string, number>;
   missing: string[];
+}
+
+export interface LineupUnit {
+  apiName: string;
+  star: number;
+  slot: number;
+  headliner?: string | null;
+}
+
+/** Portable JSON written by the Export button and accepted by Import. */
+export interface LineupFile {
+  format: 'set10-desk-lineup';
+  version: 1;
+  set: number;
+  patch: string;
+  savedAt: string;
+  era: Era;
+  mixMode: Settings['mixMode'];
+  selected?: string | null;
+  units: LineupUnit[];
+  layers: Record<Layer, LayerSetting>;
 }
 
 export function defaultSettings(): Settings {

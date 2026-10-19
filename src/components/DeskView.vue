@@ -17,9 +17,14 @@ const NOTICE_KEY: Record<Exclude<NoticeCode, ''>, MessageKey> = {
   boardFull: 'notice.boardFull',
   maxStars: 'notice.maxStars',
   notPlaying: 'notice.notPlaying',
+  lineupExported: 'lineup.exported',
+  lineupImported: 'lineup.imported',
+  lineupFailed: 'lineup.failed',
 };
 
-const noticeText = computed(() => (state.notice ? t(NOTICE_KEY[state.notice]) : ''));
+const noticeText = computed(() =>
+  state.notice ? t(NOTICE_KEY[state.notice], { count: state.noticeCount }) : '',
+);
 const manualMode = computed(() => state.settings.mixMode === 'manual');
 </script>
 

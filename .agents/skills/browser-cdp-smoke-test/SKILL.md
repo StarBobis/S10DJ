@@ -92,6 +92,15 @@ lets a clicked Play button resume an `AudioContext` in headless mode.
   count non-black pixels with `getImageData` to prove the waveform is drawing.
   Headless Chrome may report a flat time-domain buffer; a component that falls
   back to a synthetic wave is still valid.
+* **File download**: call `Page.setDownloadBehavior({behavior:'allow',
+  downloadPath:'D:/repo/tmp/downloads'})` before clicking the export button, then
+  read the directory after a short wait. Blob + anchor downloads work this way.
+* **File input**: use `DOM.getDocument`, `DOM.querySelector` for the hidden
+  input, then `DOM.setFileInputFiles({nodeId, files:[path]})`. This bypasses the
+  OS picker and fires the component's change handler in Chrome/WebView2.
+* **Like/reorder lists**: after a click that triggers a reactive re-render, wait
+  ~400 ms before reading DOM order; the old node references are stale and will
+  report the pre-click state.
 
 ## Tauri / WebView2
 

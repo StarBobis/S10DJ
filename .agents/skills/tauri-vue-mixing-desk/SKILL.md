@@ -1,6 +1,6 @@
 ---
 name: tauri-vue-mixing-desk
-description: Build and extend the Tauri 2 + Vue 3 + TypeScript desktop mixing desk in this repository, including the single-page board/traits/mixer desk, radio mode, manual Style Lab, global hero wallpaper, waveform analyser, frameless shell, Rust command surface, localized TFT data and the Web Audio layer mixer. Use when changing the app shell, adding a command, fixing playback scheduling, editing board interactions or adding a locale.
+description: Build and extend the Tauri 2 + Vue 3 + TypeScript desktop mixing desk in this repository, including the single-page board/traits/mixer desk, radio mode, manual Style Lab with all style combinations and likes, Headliners, trait-grouped pool, lineup export/import, global hero wallpaper, waveform analyser, localized TFT data and the Web Audio layer mixer. Use when changing the app shell, adding a command, fixing playback scheduling, editing board interactions or adding a locale.
 ---
 
 # Tauri 2 + Vue 3 desk
@@ -33,7 +33,7 @@ resources listed in `tauri.conf.json`.
 and `settings`. `DeskView.vue` owns the one desk page:
 
 ```
-TransportBar (play/era/mode/loop/radio/plan/status)
+TransportBar (play/era/mode/loop/radio/lineup/plan/status)
 desk-grid: ChampionPool | BoardStage or StyleLab | (HeroSpotlight + TraitsPanel)
 MixerPanel (Waveform + three channels + master)
 ```
@@ -42,13 +42,18 @@ All of it shares `src/stores/desk.ts`. Do not split board/traits/mixer back into
 separate routes - the point of the page is that a board change, the resulting
 trait tiers and the layer switches are visible together.
 
-Board model: `board: BoardUnit[]` with `{ apiName, star, slot }`.
+Board model: `board: BoardUnit[]` with `{ apiName, star, slot, headliner? }`.
 `BOARD_ROWS x BOARD_COLUMNS` gives 28 hex slots, `MAX_BOARD_UNITS` is 10 and
 `MAX_STARS` is 3. Buying a champion already on the board raises its star instead
 of adding a second trait count; TFT traits count a champion once even when it is
 3-starred. `slots` is a computed sparse array used by `BoardStage.vue`; native
 HTML drag-and-drop moves or swaps entries with `text/plain` payloads
 `shop:<apiName>` and `board:<apiName>`.
+
+A board unit can be a **Headliner** (`entry.headliner` is the chosen display
+trait). `setHeadliner()` clears every other Headliner, raises the unit to at least
+2 stars and adds +1 to that trait before tiers are calculated. The crown shows on
+the hex and the trait count updates immediately.
 
 **Tauri drag trap:** `tauri.conf.json` must set `app.windows[0].dragDropEnabled`
 to `false`. With the default file-drop handler enabled, WebView2 can swallow
@@ -59,23 +64,44 @@ drop.
 ## Radio mode
 
 `startRadio()` snapshots board, selection, era, mix mode and layer settings, then
-clears overrides and enables all layers. It starts a 12 s interval that picks a
-style from a shuffled queue, builds a 6-10 unit board around that style, selects
-a featured champion (which changes the global wallpaper), and may flip the era.
-A 250 ms ticker publishes `radio.progress` for the transport meter.
-`nextStation()` skips; `stopRadio(true)` restores the snapshot. Any manual board
-edit or settings change calls `stopRadio(false)` so the radio cannot fight the
-user.
+clears overrides and enables all layers. It starts a **165 s** interval (one full
+track) that picks a style from a shuffled queue, builds a 6-10 unit board around
+that style, selects a featured champion (which changes the global wallpaper), and
+may flip the era. A 250 ms ticker publishes `radio.progress` and
+`radio.remaining` for the transport meter/countdown. `nextStation()` skips;
+`stopRadio(true)` restores the snapshot. Any manual board edit or settings change
+calls `stopRadio(false)` so the radio cannot fight the user. Do not shorten this
+interval: the owner explicitly asked for a full song before the station changes.
+
+## Champion pool grouping
+
+`ChampionPool.vue` has two group modes. Cost mode groups the **filtered** units by
+cost (search and cost chips both apply). Trait mode groups units by every trait,
+shows music traits first, and offers a trait select for narrowing. A unit appears
+in each of its trait groups, which is intentional. `PoolCard.vue` owns the card,
+drag payload and preview so both modes share the same markup.
 
 ## Manual Style Lab
 
 `settings.mixMode` is `board` or `manual`. In manual mode `recompute()` passes an
 empty unit list to `assignLayers` and only the per-layer overrides matter, so the
-mix can be composed without champions. `StyleLab.vue` exposes three layer racks,
-all compatible styles per layer, and curated combos from `src/core/combos.ts`
-(the first is Jazz + True Damage). `setMixMode('manual')` fills an incomplete
-override set with that first combo. Clicking a champion in the dimmed pool
-switches back to board mode via `addToBoard`.
+mix can be composed without champions. `src/core/combos.ts` generates **all 458
+usable 1-3 style groups** with a perfect style-to-distinct-layer matching, so every
+style in a combo actually contributes. `StyleLab.vue` shows the layer racks, the
+combos with filter chips (All / Jhin / Liked), and the style grid with a heart on
+each card. Likes live in `src/stores/likes.ts` (localStorage): a combo like is
+worth 100, each liked style 10, and `classical` gets a +25 editorial boost so
+Jhin combinations start at the top until a liked non-Jhin combo overtakes them.
+The default loaded combo is `jazz+truedamage`. Clicking a champion in the dimmed
+pool switches back to board mode via `addToBoard`.
+
+## Lineup files
+
+The two transport arrows call `lineupSnapshot()` / `importLineup()`. The JSON
+format is `set10-desk-lineup` v1 and carries units (star, slot, Headliner), era,
+mix mode, selected champion and the three layer settings. Export uses a Blob +
+anchor download; import uses a hidden file input and validates unknown units,
+duplicate slots, stars, Headliner ownership and layer overrides before applying.
 
 ## Rust command surface
 
@@ -135,6 +161,20 @@ hamburger and Settings live in the sidebar: Desk at the top, a flexible spacer,
 then the collapse toggle and Settings pinned at the bottom. In the collapsed
 52 px rail labels disappear; at widths under 1180 px an expanded rail floats
 over the desk instead of squeezing the board.
+
+The theme is intentionally bright purple, not near-black. `tools/make_board_art.py`
+renders a saturated stage; panel/sidebar/transport backgrounds use translucent
+purple gradients with `backdrop-filter`, and the global wallpaper stays visible
+through them. If a change makes the desk look grey again, re-render the stage and
+check the wallpaper veil before darkening the panels.
+
+## Rule audit
+
+The Settings page shows the live audit (33 switches, unit+tier model, solo acts,
+Headliner support, unmodelled features). Keep it in sync with `rules.ts` and the
+`tft-set10-music-system` skill. Do not describe the exact tie-break as
+bit-perfect: the client selection code is native and the weight arithmetic is a
+reconstruction from Riot's interview plus shipped breakpoint data.
 
 ## Web Audio pitfalls (learned the hard way)
 

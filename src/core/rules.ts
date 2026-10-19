@@ -138,6 +138,10 @@ export interface AssignOptions {
   priority: string[];
   tiers?: Record<string, number>;
   overrides?: Partial<Record<Layer, string | null>>;
+  /** Styles whose single-unit act always takes one layer (Maestro etc.). */
+  soloStyles?: string[];
+  soloSpotlight?: boolean;
+  /** Legacy flag kept for callers that only know about Maestro. */
   spotlightAlwaysOccupies?: boolean;
 }
 
@@ -151,29 +155,86 @@ export function assignLayers(
     priority,
     tiers = {},
     overrides = {},
+    soloStyles = ['classical'],
+    soloSpotlight = true,
     spotlightAlwaysOccupies = true,
   } = options;
   const weights = styleWeights(units, tiers, traitStyles);
   const rank = new Map(priority.map((style, index) => [style, index]));
+  const activeSoloStyles = soloSpotlight && spotlightAlwaysOccupies ? soloStyles : [];
+
+  const styleTier = (style: string): number => {
+    let tier = 0;
+    for (const [trait, mapped] of Object.entries(traitStyles)) {
+      if (mapped === style) tier = Math.max(tier, tiers[trait] ?? 0);
+    }
+    return tier;
+  };
 
   const plan = {} as Plan;
   for (const layer of LAYERS) {
     let best = 'none';
     let bestWeight = 0;
+    let bestTier = 0;
     for (const [style, weight] of Object.entries(weights)) {
       if (weight <= 0 || !styleLayers[style]?.includes(layer)) continue;
+      const tier = styleTier(style);
       const better = weight > bestWeight;
-      const tied = weight === bestWeight && (rank.get(style) ?? 99) < (rank.get(best) ?? 99);
-      if (better || tied) {
+      const tierTie = weight === bestWeight && tier > bestTier;
+      const priorityTie =
+        weight === bestWeight &&
+        tier === bestTier &&
+        (rank.get(style) ?? 99) < (rank.get(best) ?? 99);
+      if (better || tierTie || priorityTie) {
         best = style;
         bestWeight = weight;
+        bestTier = tier;
       }
     }
     plan[layer] = { style: best, weight: bestWeight };
   }
 
-  if (spotlightAlwaysOccupies && weights.classical) {
-    plan.top = { style: 'classical', weight: weights.classical, spotlight: true };
+  // Solo acts (Maestro, Mixmaster, ILLBEATS) always hold one of the three
+  // layers. They are placed specialists-first so a two-layer act only takes a
+  // second solo's layer when one is still free.
+  const soloOrder = activeSoloStyles
+    .filter((style) => (weights[style] ?? 0) > 0 && styleLayers[style]?.length)
+    .sort((a, b) => {
+      const layerDiff = (styleLayers[a]?.length ?? 0) - (styleLayers[b]?.length ?? 0);
+      return layerDiff || (rank.get(a) ?? 99) - (rank.get(b) ?? 99);
+    });
+  const soloLayerCount = new Map<string, number>();
+  for (const layer of LAYERS) {
+    const style = plan[layer].style;
+    if (!soloOrder.includes(style)) continue;
+    soloLayerCount.set(style, (soloLayerCount.get(style) ?? 0) + 1);
+    plan[layer].spotlight = true;
+  }
+  for (const style of soloOrder) {
+    if (soloLayerCount.has(style)) continue;
+    const candidates = LAYERS.filter(
+      (layer) =>
+        styleLayers[style]?.includes(layer) &&
+        (!soloOrder.includes(plan[layer].style) ||
+          (soloLayerCount.get(plan[layer].style) ?? 0) > 1),
+    );
+    if (!candidates.length) continue;
+    // Prefer a layer currently held by a normal style; otherwise take a layer
+    // from a solo act that still holds another one.
+    candidates.sort((a, b) => {
+      const soloA = soloOrder.includes(plan[a].style) ? 1 : 0;
+      const soloB = soloOrder.includes(plan[b].style) ? 1 : 0;
+      return soloA - soloB;
+    });
+    const layer = candidates[0];
+    const displaced = plan[layer].style;
+    if (soloLayerCount.has(displaced)) {
+      const remaining = (soloLayerCount.get(displaced) ?? 1) - 1;
+      if (remaining > 0) soloLayerCount.set(displaced, remaining);
+      else soloLayerCount.delete(displaced);
+    }
+    plan[layer] = { style, weight: weights[style] ?? 0, spotlight: true };
+    soloLayerCount.set(style, 1);
   }
 
   for (const layer of LAYERS) {
