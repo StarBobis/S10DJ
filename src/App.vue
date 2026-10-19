@@ -2,16 +2,14 @@
 import { onMounted, ref } from 'vue';
 import SideBar from './components/SideBar.vue';
 import TitleBar from './components/TitleBar.vue';
-import BoardPanel from './components/BoardPanel.vue';
-import MixerPanel from './components/MixerPanel.vue';
-import TraitsPanel from './components/TraitsPanel.vue';
+import DeskView from './components/DeskView.vue';
 import SettingsPage from './components/SettingsPage.vue';
-import { initDesk, useDesk } from './stores/desk';
+import { initDesk, useDesk, clearError } from './stores/desk';
 import { useI18n } from './i18n';
 
 const state = useDesk();
 const { t } = useI18n();
-const view = ref<'board' | 'mixer' | 'traits' | 'settings'>('mixer');
+const view = ref<'desk' | 'settings'>('desk');
 
 onMounted(() => {
   void initDesk();
@@ -23,14 +21,16 @@ onMounted(() => {
     <TitleBar />
     <div class="app-body">
       <SideBar :view="view" @navigate="view = $event" />
-      <main class="content">
-        <p v-if="state.error" class="banner error">{{ state.error }}</p>
-        <p v-else-if="!state.ready" class="banner">{{ t('app.subtitle') }}</p>
+      <main class="content" :class="{ 'settings-view': view === 'settings' }">
+        <p v-if="state.error" class="banner error">
+          <strong>{{ t('app.error') }}</strong>
+          <span>{{ state.error }}</span>
+          <button v-if="state.ready" class="banner-close" :title="t('app.dismiss')" @click="clearError()">&#10005;</button>
+        </p>
+        <p v-else-if="!state.ready" class="banner loading">{{ t('app.loading') }}</p>
 
-        <MixerPanel v-if="view === 'mixer'" />
-        <BoardPanel v-else-if="view === 'board'" />
-        <TraitsPanel v-else-if="view === 'traits'" />
-        <SettingsPage v-else />
+        <DeskView v-if="state.ready && view === 'desk'" />
+        <SettingsPage v-else-if="state.ready && view === 'settings'" />
       </main>
     </div>
   </div>

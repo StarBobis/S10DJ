@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from '../i18n';
 
-withDefaults(defineProps<{ view: 'board' | 'mixer' | 'traits' | 'settings' }>(), {});
-const emit = defineEmits<{ (event: 'navigate', view: 'board' | 'mixer' | 'traits' | 'settings'): void }>();
+defineProps<{ view: 'desk' | 'settings' }>();
+const emit = defineEmits<{ (event: 'navigate', view: 'desk' | 'settings'): void }>();
 const { t } = useI18n();
 
 const items = [
-  { id: 'board', key: 'nav.board', glyph: '\u25a6' },
-  { id: 'mixer', key: 'nav.mixer', glyph: '\u2261' },
-  { id: 'traits', key: 'nav.traits', glyph: '\u25c8' },
+  { id: 'desk', key: 'nav.desk', glyph: '\u25a6' },
   { id: 'settings', key: 'nav.settings', glyph: '\u2699' },
 ] as const;
 </script>

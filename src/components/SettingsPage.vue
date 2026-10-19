@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from '../i18n';
-import { missingStems, setEra, setLanguage, setLockLoop, setMaster, useDesk } from '../stores/desk';
+import {
+  artCount,
+  missingStems,
+  runStemTest,
+  setEra,
+  setLanguage,
+  setLockLoop,
+  setMaster,
+  stemsAvailable,
+  useDesk,
+} from '../stores/desk';
 
 const state = useDesk();
 const { t } = useI18n();
 
 const missing = computed(() => missingStems());
-const stemCount = computed(() => state.scan?.files.length ?? 0);
+const stemCount = computed(() => stemsAvailable());
 
 function onLanguage(event: Event) {
   setLanguage((event.target as HTMLSelectElement).value as 'en' | 'zh-CN');
@@ -23,8 +33,14 @@ function onMaster(event: Event) {
 </script>
 
 <template>
-  <section class="panel">
-    <h2>{{ t('settings.title') }}</h2>
+  <section class="panel settings-panel">
+    <header class="panel-head">
+      <div>
+        <h2>{{ t('settings.title') }}</h2>
+        <p class="panel-sub">{{ t('app.subtitle') }}</p>
+      </div>
+    </header>
+
     <div class="settings-grid">
       <label class="field">
         <span>{{ t('settings.language') }}</span>
@@ -57,14 +73,38 @@ function onMaster(event: Event) {
       </label>
     </div>
 
-    <dl class="facts">
-      <dt>{{ t('settings.audioRoot') }}</dt>
-      <dd>{{ state.scan?.root ?? '-' }}</dd>
-      <dt>{{ t('settings.stems') }}</dt>
-      <dd>{{ stemCount }}</dd>
-      <dt>{{ t('settings.missing') }}</dt>
-      <dd>{{ missing.length ? missing.join(', ') : t('settings.none') }}</dd>
-    </dl>
+    <section class="diagnostics">
+      <div class="diagnostics-head">
+        <h3>{{ t('settings.diagnostics') }}</h3>
+        <button class="ghost small" :disabled="state.testing?.running" @click="runStemTest()">
+          {{ state.testing?.running ? t('settings.testing') : t('settings.runTest') }}
+        </button>
+      </div>
+
+      <dl class="facts">
+        <dt>{{ t('settings.audioRoot') }}</dt>
+        <dd>{{ state.scan?.root ?? '-' }}</dd>
+        <dt>{{ t('settings.stems') }}</dt>
+        <dd>{{ stemCount }}</dd>
+        <dt>{{ t('settings.missing') }}</dt>
+        <dd>{{ missing.length ? missing.join(', ') : t('settings.none') }}</dd>
+        <dt>{{ t('settings.art') }}</dt>
+        <dd>{{ artCount }}</dd>
+        <dt>{{ t('settings.patch') }}</dt>
+        <dd>{{ state.rules?.patch ?? '-' }}</dd>
+        <dt>{{ t('settings.unitCount') }}</dt>
+        <dd>{{ state.units.length }}</dd>
+      </dl>
+
+      <p v-if="state.testing && !state.testing.running" class="diagnostics-result">
+        <span v-if="state.testing.ok.length" class="ok">
+          {{ t('settings.testOk', { count: state.testing.ok.length }) }}
+        </span>
+        <span v-if="state.testing.failed.length" class="bad">
+          {{ t('settings.testFailed', { list: state.testing.failed.join(', ') }) }}
+        </span>
+      </p>
+    </section>
 
     <p class="hint">{{ t('settings.about') }}</p>
   </section>

@@ -314,6 +314,23 @@
    "traitApiSuffix": "TrueDamage"
   }
  },
+ "traitDisplayStyle": {
+  "8-bit": "8bit",
+  "Country": "country",
+  "Disco": "funk",
+  "EDM": "edm",
+  "Emo": "emo",
+  "Heartsteel": "popband",
+  "Hyperpop": "hyperpop",
+  "ILLBEATS": "illbeats",
+  "Jazz": "jazz",
+  "K/DA": "kda",
+  "Maestro": "classical",
+  "Mixmaster": "dj",
+  "Pentakill": "pentakill",
+  "Punk": "punkrock",
+  "True Damage": "truedamage"
+ },
  "traitThresholds": {
   "8-bit": [
    2,

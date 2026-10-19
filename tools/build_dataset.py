@@ -162,7 +162,9 @@ def build_units():
             continue
         if not traits:
             continue
-        if re.search(r"(Big|Minion|Voidspawn|Spawn|Clone|Prop)", api):
+        # Summons, clones and props reuse a champion portrait but are not
+        # buyable units, so they must never reach the shop or the board.
+        if re.search(r"(Big|Minion|Voidspawn|Spawn|Clone|Prop|Ghoul|DiscoBall|Ball)", api):
             continue
         style = "none"
         music_traits = []
@@ -170,6 +172,7 @@ def build_units():
             if trait in TRAIT_DISPLAY_STYLE:
                 style = TRAIT_DISPLAY_STYLE[trait]
                 music_traits.append(trait)
+        art = api.replace("TFT10_", "").lower()
         units.append(
             {
                 "apiName": api,
@@ -178,6 +181,7 @@ def build_units():
                 "traits": traits,
                 "musicTraits": music_traits,
                 "style": style,
+                "art": art,
             }
         )
     units.sort(key=lambda u: (u["cost"], u["name"] or ""))
@@ -211,6 +215,10 @@ def main():
             for style, layers in STYLE_LAYERS.items()
         },
         "traitToStyle": {f"Set10_{k}": v for k, v in TRAIT_STYLE.items()},
+        # Champion traits are keyed by display name in Riot's set data
+        # ("K/DA", "8-bit", ...), while traitToStyle uses the api suffix.
+        # The rules engine needs the display-name view to award tier bonuses.
+        "traitDisplayStyle": dict(TRAIT_DISPLAY_STYLE),
         "traitThresholds": thresholds,
         "stems": stem_index(),
         "weights": {

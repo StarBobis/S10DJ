@@ -12,15 +12,44 @@ async function getJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+/**
+ * Read one of the JSON data files. A packaged Tauri build has no HTTP route to
+ * the repository folders, so the backend reads the bundled resource instead;
+ * the browser dev server serves the same files over HTTP.
+ */
+async function loadData<T>(name: string): Promise<T> {
+  if (inTauri()) {
+    try {
+      return await invoke<T>('load_data', { name });
+    } catch (error) {
+      console.warn(`load_data ${name} failed, trying HTTP`, error);
+    }
+  }
+  return getJson<T>(`data/${name}`);
+}
+
 export function loadUnits(): Promise<UnitsFile> {
-  return getJson<UnitsFile>('data/set10_units.json');
+  return loadData<UnitsFile>('set10_units.json');
 }
 
 export function loadRules(): Promise<RulesFile> {
-  return getJson<RulesFile>('data/music_rules.json');
+  return loadData<RulesFile>('music_rules.json');
 }
 
 let audioRoot = 'assets/audio_ogg';
+
+/** True when the page is served by the Vite dev server rather than Tauri. */
+export function onDevServer(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (!inTauri()) return window.location.protocol === 'http:' || window.location.protocol === 'https:';
+  const { hostname, port } = window.location;
+  return (hostname === '127.0.0.1' || hostname === 'localhost') && port === '8787';
+}
+
+function joinPath(root: string, name: string): string {
+  const separator = root.includes('\\') ? '\\' : '/';
+  return `${root.replace(/[/\\]+$/, '')}${separator}${name}`;
+}
 
 /** Absolute folder holding the converted stems, asked from the Rust side. */
 export async function resolveAudioRoot(): Promise<string> {
@@ -33,11 +62,33 @@ export async function resolveAudioRoot(): Promise<string> {
   return audioRoot;
 }
 
+/**
+ * In development the page comes from Vite, which serves the repository folders
+ * over HTTP, so the plain path is used. A packaged build has no such server and
+ * goes through the Tauri asset protocol, whose scope the backend opens for the
+ * resolved stem folder.
+ */
 export function stemUrl(file: string): string {
-  const relative = `${audioRoot}/${file}.ogg`;
-  if (!inTauri()) return relative.startsWith('assets') ? `/${relative}` : relative;
-  const separator = audioRoot.includes('\\') ? '\\' : '/';
-  return convertFileSrc(`${audioRoot}${separator}${file}.ogg`);
+  const name = `${file}.ogg`;
+  if (onDevServer()) return `/assets/audio_ogg/${name}`;
+  return convertFileSrc(joinPath(audioRoot, name));
+}
+
+/** The other scheme, used as a fallback when the first one is not reachable. */
+export function stemUrlFallback(file: string): string | null {
+  if (onDevServer()) return null;
+  return convertFileSrc(joinPath(audioRoot, `${file}.ogg`));
+}
+
+/** Mirrors a frontend event into the Rust log so runs can be verified. */
+export async function reportEvent(message: string): Promise<void> {
+  console.log(`[desk] ${message}`);
+  if (!inTauri()) return;
+  try {
+    await invoke('log_event', { message });
+  } catch {
+    /* logging must never break playback */
+  }
 }
 
 export async function scanStems(required: string[] = []): Promise<StemScan> {

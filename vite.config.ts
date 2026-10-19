@@ -15,19 +15,29 @@ function repoAssets(): Plugin {
     '.ogg': 'audio/ogg',
     '.aac': 'audio/aac',
     '.png': 'image/png',
+    '.webp': 'image/webp',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.svg': 'image/svg+xml',
   };
+
+  const serve = (req: { url?: string }, res: any, next: () => void) => {
+    const url = (req.url || '').split('?')[0];
+    if (!url.startsWith('/data/') && !url.startsWith('/assets/')) return next();
+    const file = join(process.cwd(), normalize(url).replace(/^([/\\])+/, ''));
+    if (!existsSync(file) || !statSync(file).isFile()) return next();
+    res.setHeader('Content-Type', types[extname(file)] ?? 'application/octet-stream');
+    res.setHeader('Accept-Ranges', 'bytes');
+    createReadStream(file).pipe(res);
+  };
+
   return {
     name: 'repo-assets',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const url = (req.url || '').split('?')[0];
-        if (!url.startsWith('/data/') && !url.startsWith('/assets/')) return next();
-        const file = join(process.cwd(), normalize(url).replace(/^([/\\])+/, ''));
-        if (!existsSync(file) || !statSync(file).isFile()) return next();
-        res.setHeader('Content-Type', types[extname(file)] ?? 'application/octet-stream');
-        res.setHeader('Accept-Ranges', 'bytes');
-        createReadStream(file).pipe(res);
-      });
+      server.middlewares.use(serve);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(serve);
     },
   };
 }
@@ -39,6 +49,10 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 8787,
     strictPort: true,
+  },
+  preview: {
+    host: '127.0.0.1',
+    port: 4173,
   },
   build: {
     outDir: 'dist',

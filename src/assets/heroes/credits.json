@@ -1,0 +1,362 @@
+{
+ "ahri": {
+  "art": "ahri",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_ahri_mobile.tft_set10.png",
+  "unit": "Ahri"
+ },
+ "akali": {
+  "art": "akali",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_akali_mobile.tft_set10.png",
+  "unit": "Akali"
+ },
+ "akali_truedamage": {
+  "art": "akali_truedamage",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_akali_truedamage_mobile.tft_set10.png",
+  "unit": "Akali"
+ },
+ "amumu": {
+  "art": "amumu",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_amumu_mobile.tft_set10.png",
+  "unit": "Amumu"
+ },
+ "annie": {
+  "art": "annie",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_annie_mobile.tft_set10.png",
+  "unit": "Annie"
+ },
+ "aphelios": {
+  "art": "aphelios",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_aphelios_mobile.tft_set10.png",
+  "unit": "Aphelios"
+ },
+ "bard": {
+  "art": "bard",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_bard_mobile.tft_set10.png",
+  "unit": "Bard"
+ },
+ "blitzcrank": {
+  "art": "blitzcrank",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_blitzcrank_mobile.tft_set10.png",
+  "unit": "Blitzcrank"
+ },
+ "caitlyn": {
+  "art": "caitlyn",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_caitlyn_mobile.tft_set10.png",
+  "unit": "Caitlyn"
+ },
+ "corki": {
+  "art": "corki",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_corki_mobile.tft_set10.png",
+  "unit": "Corki"
+ },
+ "ekko": {
+  "art": "ekko",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_ekko_mobile.tft_set10.png",
+  "unit": "Ekko"
+ },
+ "evelynn": {
+  "art": "evelynn",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_evelynn_mobile.tft_set10.png",
+  "unit": "Evelynn"
+ },
+ "ezreal": {
+  "art": "ezreal",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_ezreal_mobile.tft_set10.png",
+  "unit": "Ezreal"
+ },
+ "garen": {
+  "art": "garen",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_garen_mobile.tft_set10.png",
+  "unit": "Garen"
+ },
+ "gnar": {
+  "art": "gnar",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_gnar_mobile.tft_set10.png",
+  "unit": "Gnar"
+ },
+ "gragas": {
+  "art": "gragas",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_gragas_mobile.tft_set10.png",
+  "unit": "Gragas"
+ },
+ "illaoi": {
+  "art": "illaoi",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_illaoi_mobile.tft_set10.png",
+  "unit": "Illaoi"
+ },
+ "jax": {
+  "art": "jax",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_jax_mobile.tft_set10.png",
+  "unit": "Jax"
+ },
+ "jhin": {
+  "art": "jhin",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_jhin_mobile.tft_set10.png",
+  "unit": "Jhin"
+ },
+ "jinx": {
+  "art": "jinx",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_jinx_mobile.tft_set10.png",
+  "unit": "Jinx"
+ },
+ "kaisa": {
+  "art": "kaisa",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_kaisa_mobile.tft_set10.png",
+  "unit": "Kai'Sa"
+ },
+ "karthus": {
+  "art": "karthus",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_karthus_mobile.tft_set10.png",
+  "unit": "Karthus"
+ },
+ "katarina": {
+  "art": "katarina",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_katarina_mobile.tft_set10.png",
+  "unit": "Katarina"
+ },
+ "kayle": {
+  "art": "kayle",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_kayle_mobile.tft_set10.png",
+  "unit": "Kayle"
+ },
+ "kayn": {
+  "art": "kayn",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_kayn_mobile.tft_set10.png",
+  "unit": "Kayn"
+ },
+ "kennen": {
+  "art": "kennen",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_kennen_mobile.tft_set10.png",
+  "unit": "Kennen"
+ },
+ "ksante": {
+  "art": "ksante",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_ksante_mobile.tft_set10.png",
+  "unit": "K'Sante"
+ },
+ "lillia": {
+  "art": "lillia",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_lillia_mobile.tft_set10.png",
+  "unit": "Lillia"
+ },
+ "lucian": {
+  "art": "lucian",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_lucian_mobile.tft_set10.png",
+  "unit": "Lucian"
+ },
+ "lulu": {
+  "art": "lulu",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_lulu_mobile.tft_set10.png",
+  "unit": "Lulu"
+ },
+ "lux": {
+  "art": "lux",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_lux_mobile.tft_set10.png",
+  "unit": "Lux"
+ },
+ "missfortune": {
+  "art": "missfortune",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_missfortune_mobile.tft_set10.png",
+  "unit": "Miss Fortune"
+ },
+ "mordekaiser": {
+  "art": "mordekaiser",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_mordekaiser_mobile.tft_set10.png",
+  "unit": "Mordekaiser"
+ },
+ "nami": {
+  "art": "nami",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_nami_mobile.tft_set10.png",
+  "unit": "Nami"
+ },
+ "neeko": {
+  "art": "neeko",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_neeko_mobile.tft_set10.png",
+  "unit": "Neeko"
+ },
+ "olaf": {
+  "art": "olaf",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_olaf_mobile.tft_set10.png",
+  "unit": "Olaf"
+ },
+ "pantheon": {
+  "art": "pantheon",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_pantheon_mobile.tft_set10.png",
+  "unit": "Pantheon"
+ },
+ "poppy": {
+  "art": "poppy",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_poppy_mobile.tft_set10.png",
+  "unit": "Poppy"
+ },
+ "qiyana": {
+  "art": "qiyana",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_qiyana_mobile.tft_set10.png",
+  "unit": "Qiyana"
+ },
+ "riven": {
+  "art": "riven",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_riven_mobile.tft_set10.png",
+  "unit": "Riven"
+ },
+ "samira": {
+  "art": "samira",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_samira_mobile.tft_set10.png",
+  "unit": "Samira"
+ },
+ "senna": {
+  "art": "senna",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_senna_mobile.tft_set10.png",
+  "unit": "Senna"
+ },
+ "seraphine": {
+  "art": "seraphine",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_seraphine_mobile.tft_set10.png",
+  "unit": "Seraphine"
+ },
+ "sett": {
+  "art": "sett",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_sett_mobile.tft_set10.png",
+  "unit": "Sett"
+ },
+ "sona": {
+  "art": "sona",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_sona_mobile.tft_set10.png",
+  "unit": "Sona"
+ },
+ "tahmkench": {
+  "art": "tahmkench",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_tahmkench_mobile.tft_set10.png",
+  "unit": "Tahm Kench"
+ },
+ "taric": {
+  "art": "taric",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_taric_mobile.tft_set10.png",
+  "unit": "Taric"
+ },
+ "thresh": {
+  "art": "thresh",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_thresh_mobile.tft_set10.png",
+  "unit": "Thresh"
+ },
+ "twistedfate": {
+  "art": "twistedfate",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_twistedfate_mobile.tft_set10.png",
+  "unit": "Twisted Fate"
+ },
+ "twitch": {
+  "art": "twitch",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_twitch_mobile.tft_set10.png",
+  "unit": "Twitch"
+ },
+ "urgot": {
+  "art": "urgot",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_urgot_mobile.tft_set10.png",
+  "unit": "Urgot"
+ },
+ "vex": {
+  "art": "vex",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_vex_mobile.tft_set10.png",
+  "unit": "Vex"
+ },
+ "vi": {
+  "art": "vi",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_vi_mobile.tft_set10.png",
+  "unit": "Vi"
+ },
+ "viego": {
+  "art": "viego",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_viego_mobile.tft_set10.png",
+  "unit": "Viego"
+ },
+ "yasuo": {
+  "art": "yasuo",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_yasuo_mobile.tft_set10.png",
+  "unit": "Yasuo"
+ },
+ "yone": {
+  "art": "yone",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_yone_mobile.tft_set10.png",
+  "unit": "Yone"
+ },
+ "yorick": {
+  "art": "yorick",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_yorick_mobile.tft_set10.png",
+  "unit": "Yorick"
+ },
+ "zac": {
+  "art": "zac",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_zac_mobile.tft_set10.png",
+  "unit": "Zac"
+ },
+ "zed": {
+  "art": "zed",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_zed_mobile.tft_set10.png",
+  "unit": "Zed"
+ },
+ "ziggs": {
+  "art": "ziggs",
+  "patch": "13.24",
+  "source": "https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/tft10_ziggs_mobile.tft_set10.png",
+  "unit": "Ziggs"
+ }
+}

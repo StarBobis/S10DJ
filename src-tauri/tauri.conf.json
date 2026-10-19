@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.set10.mixingdesk",
   "build": {
-    "beforeDevCommand": "bun run dev",
-    "devUrl": "http://localhost:8787",
+    "beforeDevCommand": "bun run dev:tauri",
+    "devUrl": "http://127.0.0.1:8787",
     "beforeBuildCommand": "bun run build",
     "frontendDist": "../dist"
   },
@@ -13,10 +13,10 @@
     "windows": [
       {
         "title": "Set 10 Mixing Desk",
-        "width": 1360,
-        "height": 840,
-        "minWidth": 960,
-        "minHeight": 620,
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1100,
+        "minHeight": 720,
         "decorations": false,
         "resizable": true,
         "center": true,

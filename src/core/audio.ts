@@ -3,8 +3,12 @@ import { LAYERS, type Layer, type LayerSetting } from './types';
 export interface MixerOptions {
   /** Maps a stem base name to a playable URL (asset protocol or relative path). */
   urlFor: (file: string) => string;
+  /** Second URL scheme, tried when the first one is unreachable. */
+  fallbackUrlFor?: (file: string) => string | null;
   /** Base names that exist on disk; null disables the check. */
   available?: Set<string> | null;
+  /** Mirror of load results, forwarded to the backend log. */
+  onEvent?: (message: string) => void;
 }
 
 type Voice = { node: AudioBufferSourceNode; gain: GainNode; file: string };
@@ -22,6 +26,7 @@ export class StemMixer {
   private masterGain: GainNode | null = null;
   private voices = new Map<string, Voice>();
   private buffers = new Map<string, AudioBuffer>();
+  private loading = new Map<string, Promise<AudioBuffer | null>>();
   private planFiles: Record<Layer, string | null> = { drums: null, chords: null, top: null };
   private layerSettings: Record<Layer, LayerSetting> = {
     drums: { enabled: true, volume: 1, override: null },
@@ -33,15 +38,12 @@ export class StemMixer {
   private playing = false;
   private startedAt = 0;
   private offset = 0;
+  private applyToken = 0;
 
   constructor(private options: MixerOptions) {}
 
   get isPlaying(): boolean {
     return this.playing;
-  }
-
-  get currentTime(): number {
-    return this.ctx?.currentTime ?? 0;
   }
 
   private ensureContext(): AudioContext {
@@ -59,34 +61,76 @@ export class StemMixer {
     return !available || available.has(file);
   }
 
-  private async load(file: string): Promise<AudioBuffer | null> {
-    if (this.buffers.has(file)) return this.buffers.get(file) ?? null;
+  private emit(message: string) {
+    this.options.onEvent?.(message);
+  }
+
+  private load(file: string): Promise<AudioBuffer | null> {
+    const cached = this.buffers.get(file);
+    if (cached) return Promise.resolve(cached);
+    const running = this.loading.get(file);
+    if (running) return running;
+
+    const task = this.fetchAndDecode(file).finally(() => this.loading.delete(file));
+    this.loading.set(file, task);
+    return task;
+  }
+
+  private async fetchAndDecode(file: string): Promise<AudioBuffer | null> {
     const ctx = this.ensureContext();
-    try {
-      const response = await fetch(this.options.urlFor(file));
-      const data = await response.arrayBuffer();
-      const buffer = await ctx.decodeAudioData(data);
-      this.buffers.set(file, buffer);
-      return buffer;
-    } catch (error) {
-      console.warn(`stem not playable: ${file}`, error);
-      return null;
+    const urls = [this.options.urlFor(file)];
+    const fallback = this.options.fallbackUrlFor?.(file);
+    if (fallback && fallback !== urls[0]) urls.push(fallback);
+    for (const url of urls) {
+      const scheme = url.startsWith('http') ? 'asset protocol' : 'dev server';
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.arrayBuffer();
+        const buffer = await ctx.decodeAudioData(data);
+        this.buffers.set(file, buffer);
+        this.emit(`stem ok: ${file} (${buffer.duration.toFixed(1)}s) via ${scheme}`);
+        return buffer;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.emit(`stem failed: ${file} via ${scheme} - ${message}`);
+      }
     }
+    return null;
+  }
+
+  /** Try one specific URL and report whether it decodes (used by diagnostics). */
+  async probe(file: string, url: string): Promise<boolean> {
+    const scheme = url.startsWith('http') ? 'asset protocol' : 'dev server';
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.arrayBuffer();
+      const buffer = await this.ensureContext().decodeAudioData(data);
+      this.emit(`probe ok: ${file} via ${scheme} (${buffer.duration.toFixed(1)}s)`);
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.emit(`probe failed: ${file} via ${scheme} - ${message}`);
+      return false;
+    }
+  }
+
+  /** Decode a set of stems and report the outcome, used by the diagnostics card. */
+  async selfTest(files: string[]): Promise<{ ok: string[]; failed: string[] }> {
+    const results = await Promise.all(files.map(async (file) => ({ file, buffer: await this.load(file) })));
+    const ok = results.filter((item) => item.buffer).map((item) => item.file);
+    const failed = results.filter((item) => !item.buffer).map((item) => item.file);
+    this.emit(
+      `selftest: ${ok.length}/${files.length} stems decodable${failed.length ? ` (missing: ${failed.join(', ')})` : ''}`,
+    );
+    return { ok, failed };
   }
 
   /** Transport position in seconds, clamped so scheduling never goes negative. */
   private position(): number {
     if (!this.playing || !this.ctx) return this.offset;
     return Math.max(0, this.offset + (this.ctx.currentTime - this.startedAt));
-  }
-
-  private loopLength(): number | null {
-    const files = [...new Set(this.activeFiles())];
-    const lengths = files
-      .map((file) => this.buffers.get(file)?.duration)
-      .filter((value): value is number => typeof value === 'number');
-    if (!lengths.length) return null;
-    return Math.min(...lengths);
   }
 
   private activeFiles(): string[] {
@@ -98,6 +142,15 @@ export class StemMixer {
     return files;
   }
 
+  private activeLoop(): number | null {
+    if (!this.lockLoop) return null;
+    const lengths = [...new Set(this.activeFiles())]
+      .map((file) => this.buffers.get(file)?.duration)
+      .filter((value): value is number => typeof value === 'number' && value > 0.05);
+    if (!lengths.length) return null;
+    return Math.min(...lengths);
+  }
+
   private voiceTarget(file: string): number {
     let target = 0;
     for (const layer of LAYERS) {
@@ -105,7 +158,7 @@ export class StemMixer {
       if (!setting.enabled || this.planFiles[layer] !== file) continue;
       target = Math.max(target, setting.volume);
     }
-    return target * this.master;
+    return target;
   }
 
   private applyGains(when?: number) {
@@ -116,30 +169,58 @@ export class StemMixer {
     }
   }
 
-  async start(settings: Record<Layer, LayerSetting>, master: number, lockLoop: boolean) {
+  /**
+   * Update the loop region of every live voice. Locked mode wraps at the
+   * shortest active stem; unlocked mode wraps each stem at its own duration.
+   */
+  private syncLoopRegions() {
+    const loop = this.activeLoop();
+    for (const voice of this.voices.values()) {
+      const duration = this.buffers.get(voice.file)?.duration ?? 0;
+      const end = loop ? Math.min(loop, duration) : duration;
+      if (end <= 0.05) {
+        voice.node.loop = false;
+        continue;
+      }
+      voice.node.loop = true;
+      voice.node.loopStart = 0;
+      voice.node.loopEnd = end;
+    }
+  }
+
+  async start(
+    plan: Record<Layer, string | null>,
+    settings: Record<Layer, LayerSetting>,
+    master: number,
+    lockLoop: boolean,
+  ) {
     const ctx = this.ensureContext();
     if (ctx.state === 'suspended') await ctx.resume();
     this.layerSettings = settings;
     this.master = master;
     this.lockLoop = lockLoop;
+    if (this.masterGain) this.masterGain.gain.value = master;
     this.offset = 0;
     this.playing = true;
     this.startedAt = ctx.currentTime + 0.08;
-    await this.applyPlan(this.planFiles, { hard: true });
+    await this.applyPlan(plan, { hard: true });
   }
 
   async applyPlan(plan: Record<Layer, string | null>, { hard = false } = {}) {
     this.planFiles = { ...plan };
     if (!this.playing || !this.ctx || !this.masterGain) return;
     const ctx = this.ctx;
-    const startAt = hard ? this.startedAt : ctx.currentTime + 0.02;
+    const token = (this.applyToken += 1);
     const files = [...new Set(this.activeFiles())];
 
-    for (const file of files) await this.load(file);
+    await Promise.all(files.map((file) => this.load(file)));
+    if (token !== this.applyToken || !this.playing || !this.ctx) return;
 
-    const loop = this.lockLoop ? this.loopLength() : null;
-    const rawPosition = this.position();
-    const offset = loop ? rawPosition % loop : rawPosition;
+    this.syncLoopRegions();
+
+    const loop = this.activeLoop();
+    const startAt = hard ? this.startedAt : ctx.currentTime + 0.02;
+    const raw = hard ? 0 : this.position();
 
     for (const file of files) {
       const buffer = this.buffers.get(file);
@@ -148,21 +229,21 @@ export class StemMixer {
       if (!voice) {
         const node = ctx.createBufferSource();
         node.buffer = buffer;
-        const target = loop ? Math.min(loop, buffer.duration) : buffer.duration;
-        // A degenerate loop region would make Web Audio throw; fall back to a
-        // one-shot source instead.
-        if (target > 0.05) {
+        const region = loop ? Math.min(loop, buffer.duration) : buffer.duration;
+        if (region > 0.05) {
           node.loop = true;
           node.loopStart = 0;
-          node.loopEnd = target;
+          node.loopEnd = region;
         }
         const gain = ctx.createGain();
         gain.gain.value = 0;
         node.connect(gain).connect(this.masterGain);
-        // Clamp the schedule offset: a start time in the future must not yield a
-        // negative offset, which is what AudioBufferSourceNode.start rejects.
-        const limit = target > 0.05 ? Math.max(0, target - 0.01) : Math.max(0, buffer.duration - 0.01);
-        const safeOffset = Math.max(0, Math.min(hard ? 0 : offset, limit));
+
+        // Never hand a negative or past-the-end offset to start(): a start time
+        // in the future made position() negative in the old implementation.
+        const span = region > 0.05 ? region : buffer.duration;
+        const wrapped = span > 0.05 ? raw % span : 0;
+        const safeOffset = Math.max(0, Math.min(wrapped, Math.max(0, span - 0.01)));
         node.start(startAt, safeOffset);
         voice = { node, gain, file };
         this.voices.set(file, voice);
@@ -194,7 +275,9 @@ export class StemMixer {
   }
 
   setLockLoop(value: boolean) {
+    if (this.lockLoop === value) return;
     this.lockLoop = value;
+    this.syncLoopRegions();
   }
 
   restart() {
@@ -210,7 +293,7 @@ export class StemMixer {
   }
 
   stop() {
-    if (!this.ctx || !this.playing) return;
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
     for (const voice of this.voices.values()) {
       voice.gain.gain.cancelScheduledValues(now);
@@ -219,5 +302,12 @@ export class StemMixer {
     }
     this.voices.clear();
     this.playing = false;
+    this.offset = 0;
+    this.startedAt = 0;
+  }
+
+  /** Drop decoded buffers, used by the diagnostic reset. */
+  clearCache() {
+    this.buffers.clear();
   }
 }

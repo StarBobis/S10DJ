@@ -2,6 +2,13 @@ export type Layer = 'drums' | 'chords' | 'top';
 
 export const LAYERS: Layer[] = ['drums', 'chords', 'top'];
 
+/** Board geometry: four rows of seven hexes, ten deployable units. */
+export const BOARD_ROWS = 4;
+export const BOARD_COLUMNS = 7;
+export const BOARD_SLOTS = BOARD_ROWS * BOARD_COLUMNS;
+export const MAX_BOARD_UNITS = 10;
+export const MAX_STARS = 3;
+
 export interface Unit {
   apiName: string;
   name: string;
@@ -9,12 +16,26 @@ export interface Unit {
   traits: string[];
   musicTraits: string[];
   style: string;
+  /** Portrait file stem inside src/assets/heroes. */
+  art: string;
+}
+
+export interface BoardUnit {
+  apiName: string;
+  /** 1..3, the star level reached by buying copies. */
+  star: number;
+  /** Index into the hex board, 0..BOARD_SLOTS-1. */
+  slot: number;
 }
 
 export interface RulesFile {
+  set: number;
+  patch: string;
   layers: Layer[];
   styles: Record<string, { layers: Layer[]; traitApiSuffix: string | null }>;
   traitToStyle: Record<string, string>;
+  /** Display-name trait -> style, the view champion data actually uses. */
+  traitDisplayStyle: Record<string, string>;
   traitThresholds: Record<string, number[]>;
   stems: Record<string, Partial<Record<Layer, Partial<Record<Era, string>>>>>;
   priority: string[];
@@ -66,7 +87,7 @@ export function defaultSettings(): Settings {
     era: 'late',
     lockLoop: true,
     master: 0.9,
-    sidebarCollapsed: false,
+    sidebarCollapsed: true,
     layers: {
       drums: { enabled: true, volume: 1, override: null },
       chords: { enabled: true, volume: 1, override: null },
