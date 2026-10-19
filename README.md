@@ -1,36 +1,47 @@
-# Set 10 (Remix Rumble) Mixing Desk
+# Set 10 Mixing Desk
 
-A Tauri desktop app that rebuilds the Teamfight Tactics **Set 10 / patch 13.24**
-adaptive music system: the rules that decide which styles play, and a live mixing
-desk that layers the game's stems as you place units.
+A desktop recreation of the Teamfight Tactics **Set 10 (Remix Rumble / patch
+13.24)** adaptive soundtrack, built as a Tauri 2 + Vue 3 app. Place champions on
+the board and the app selects the drums, chords and top layers the same way the
+game does - or ignore champions entirely and compose the mix by hand.
 
-Everything which makes the mix fits on **one desk page**: champion pool, hex
-board, hero spotlight, traits and the three-channel mixer. The selected champion
-also becomes the blurred global wallpaper, and every surface stays translucent
-over it.
+![The desk](assets/screenshots/desk.webp)
 
-* **Frontend**: Vue 3 + TypeScript (Vite), bundled with **bun**
-* **Backend**: **Rust** (Tauri 2) - stem scan, data files, settings persistence,
-  asset root
-* **Audio**: Web Audio, one voice per stem, gains ramped so layers can be
-  toggled while playing, plus a live analyser driving the waveform
-* **Art**: 60 extracted TFT champion banners for the UI, 60 square splashes for
-  the global wallpaper, and a procedural stage texture
-* **Locale**: English and Simplified Chinese for champion, trait and style names
+## What it does
 
-## What the game actually does (evidence-backed)
+- **One desk page**: champion pool, 4x7 hex board, hero spotlight, traits and the
+  three-channel mixing desk are visible together.
+- **Radio**: builds a themed board, starts playback and holds the station for a
+  full 2:45 track before rotating styles and eras. Skip with one button.
+- **Style Lab**: no champions required. Generates all **458 usable 1-3 style
+  combinations**, with per-style and per-combo likes that reorder the
+  recommendations. Jhin combinations start at the top.
+- **Headliner**: mark a unit as Headliner and give one of its traits +1, matching
+  the set mechanic that pushes breakpoints.
+- **Lineup files**: export and import the board, stars, Headliner, era, mix mode
+  and layer settings as JSON.
+- **Localized**: English and Simplified Chinese champion, trait and style names,
+  read from Riot's `zh_CN` set data.
+- **Live visuals**: the selected champion becomes the blurred global wallpaper,
+  panels stay translucent over it, and the mixer header carries a real-time
+  waveform/spectrum analyser.
+- **Set 10 art**: 60 in-game TFT champion banners for the UI and 60 square set
+  splashes used only for the wallpaper.
 
-Three layers make up the soundtrack, and every layer has its own Wwise switch:
+![Style Lab](assets/screenshots/style-lab.webp)
+
+## How the game's mix works
+
+The soundtrack is three layers, each selected by its own Wwise switch:
 
 ```
 Set_Switch_set10_<style>_<layer>      layer in { drums, chords, top }
 ```
 
-Those switch names ship inside the 13.24 game data (`Map22.wad.client`, TFT10
-music data chunk), which is also where the style list comes from. Riot's own
-trait api names confirm the style ids:
+The 13.24 `Map22.wad.client` switch table contains **33 names**. `none` is the
+base track for a layer no style occupies.
 
-| style id | trait (display name) | layers provided |
+| style id | trait | layers |
 | --- | --- | --- |
 | `8bit` | 8-bit | drums, chords |
 | `classical` | Maestro (Jhin) | top |
@@ -38,195 +49,252 @@ trait api names confirm the style ids:
 | `dj` | Mixmaster (Sona) | drums |
 | `edm` | EDM | drums, chords |
 | `emo` | Emo | drums, chords |
-| `funk` | Disco (`Set10_Funk`) | drums, chords |
+| `funk` | Disco | drums, chords |
 | `hyperpop` | Hyperpop | top |
 | `illbeats` | ILLBEATS | drums, top |
 | `jazz` | Jazz | top |
 | `kda` | K/DA | drums, chords, top |
-| `none` | base track | drums, chords, top |
+| `none` | base | drums, chords, top |
 | `pentakill` | Pentakill | drums, chords, top |
-| `popband` | Heartsteel (`Set10_PopBand`) | drums, chords, top |
+| `popband` | Heartsteel | drums, chords, top |
 | `punkrock` | Punk | drums, chords |
 | `truedamage` | True Damage | drums, chords, top |
 
-Additional rules from Riot's design interview about the set:
+Riot's design interview confirms that the mix follows **unit counts**, that the
+breakpoint tier raises a style's share, and that a solo act such as Maestro (Jhin)
+always takes one layer. The desk implements:
 
-* the mix is driven by **how many units of a style are on the board**, not only
-  by activated breakpoints (so class-trait comps still hear music);
-* a style's share grows with its breakpoint tier (bronze -> silver -> gold ->
-  prismatic);
-* a solo act such as **Maestro (Jhin) always occupies one of the three layers**.
+```
+weight(style) = units(style) + tierIndex(style breakpoints, count)
 
-`src/core/rules.ts` implements this as `weight(style) = units(style) +
-tierIndex`, then each layer independently takes the heaviest style able to
-provide it (ties fall back to the shipped priority order) and the base style
-`none` fills whatever is left. Every layer can be overridden by hand.
+for each layer:
+  take the heaviest style that provides the layer
+  equal weight -> higher breakpoint tier, then the data priority order
+  no style -> none
 
-Champion data keys traits by **display name** (`K/DA`, `8-bit`, ...) while the
-trait api uses suffixes (`Set10_KDA`). `music_rules.json` carries both views
-(`traitDisplayStyle` and `traitToStyle`); the rules engine uses the display-name
-map, which is why breakpoint bonuses show up in the UI and in the mix.
+solo acts (classical, dj, illbeats) hold a layer before the normal winners
+Headliner: +1 to the chosen trait before tiers are calculated
+```
 
-## Rule audit
+The exact arithmetic and tie-break are an **evidence-backed reconstruction**, not
+a byte-perfect copy of the native client. The confirmed and unmodelled parts are
+listed in the app under **Settings -> Music rule audit**:
 
-What is confirmed from the shipped data and Riot's design interview:
+![Rule audit](assets/screenshots/rules-audit.webp)
 
-* **33 music switches** - the 13.24 `Map22.wad.client` switch table lists exactly
-  the 16 styles x their supported layers shown above. `ILLBEATS` does have both
-  `drums` and `top` switches even though some summaries omit the second one.
-* **Unit count is the trigger, breakpoint tier raises the share** - Riot moved
-  from "activated trait only" to unit counts so class-trait comps still get
-  music, then combined trait tier with unit count. The desk models
-  `weight(style) = units(style) + tierIndex`, picks the heaviest style per
-  layer, and breaks equal weights by higher tier first, then the shipped
-  priority order.
-* **Solo acts always take a layer** - the interview names Maestro (Jhin); set 10
-  also has the single-unit Mixmaster (Sona) and ILLBEATS (Illaoi) acts. All three
-  are spotlighted before the normal layer winners.
-* **Headliner adds +1 to a chosen trait** - implemented in trait counts and
-  exported in lineup files.
-* **Base track fills unused layers** - `none` is the fallback for a layer no
-  style occupies.
+Not modelled: emblems/augments/portals that add traits or champions, Wwise phase
+music and stingers, and the client's exact internal tie-break.
 
-What the desk does **not** model, because it is outside the extracted data or
-the app's scope:
+## Quick start
 
-* emblems, augments and portals that add traits or champions;
-* Wwise phase music (`Draft` / `Prepare` / `Locked` / `Battle`) and stingers;
-* the native client's exact numeric tie-break beyond the evidence above.
+### Requirements
 
-The Settings page includes the same audit so the assumptions are visible in the
-app instead of hidden in code.
+- Windows 10/11 with the WebView2 runtime (Tauri desktop build)
+- [Bun](https://bun.sh/) for the frontend
+- Rust stable for `tauri dev` / `tauri build`
+- Python 3.14 with Pillow and NumPy only if you want to regenerate art/data
 
-## The desk
-
-* **Sidebar** - the desk at the top, the collapse toggle and Settings pinned to
-  the bottom. The title bar is only the drag region, brand and window buttons.
-* **Champion pool** - the extracted TFT champion banner, localized name, cost
-  and style. Group by cost or by trait, search in English or Chinese, click to
-  deploy or right-click to remove.
-* **Hex board** - 4 x 7 hexes. Click to select, **drag to move or swap**,
-  double-click to star up (1-3), right-click to remove. Each copy bought adds a
-  star, and a champion counts once for traits no matter its star level.
-* **Hero spotlight** - the selected or hovered champion's banner, localized name,
-  traits and remove/upgrade actions.
-* **Traits** - active music traits with count, next breakpoint, tier and meter,
-  followed by non-music traits. Names and layer assignments are localized.
-* **Mixing desk** - one channel per layer with an on/off switch, vertical fader,
-  style override and the exact `Set_Switch_set10_*` name. The header carries a
-  live waveform/spectrum analyser.
-* **Radio** - one click builds a themed board, starts playback and keeps the
-  station for a full 2:45 track before rotating styles and eras. `Next station`
-  skips immediately; stop restores the board, selection, era and layer settings
-  you had before.
-* **Style Lab** - a no-champion mode for composing styles directly. It generates
-  all **458 usable 1-3 style combinations**, supports per-style and per-combo
-  likes with persisted ranking, and pins Jhin (Maestro) combinations above the
-  rest until a liked non-Jhin combo overtakes them. A curated pair such as
-  **Jazz + True Damage** is loaded when the lab opens. Clicking a champion
-  returns to board mode.
-* **Headliner** - a board unit can be marked as a Headliner and give its chosen
-  trait +1, matching the set mechanic that pushes trait breakpoints.
-* **Lineup files** - export the current board, stars, Headliner, era, mix mode
-  and layer settings to a JSON file, then import it on another run.
-* **Global wallpaper** - selecting a champion crossfades its set splash behind
-  the whole app; every panel is translucent and blurred over it.
-
-## Running it
+### Run
 
 ```powershell
 bun install
-bun run dev        # browser dev server on http://127.0.0.1:8787
+bun run dev        # browser dev server: http://127.0.0.1:8787
 bun run app:dev    # Tauri window (frameless, custom title bar)
-bun run build      # type check + production bundle
-bun run app:build  # installable bundle
+bun run build      # vue-tsc --noEmit + production bundle
+bun run app:build  # NSIS installer
 ```
 
-In the desk: add units on the left, press **Play**, then toggle layers, move
-faders or pin a style while the music keeps running. **Settings** switches the
-language, the default era, loop behaviour and runs the audio diagnostics.
-The two arrows in the transport export and import a lineup JSON file; the file
-keeps stars, Headliner choice, era, mix mode and all layer settings.
+The browser mode is useful for UI work. Tauri adds the native window, the asset
+protocol and the Rust data/settings commands.
 
-The game ships an early and a late render of every stem, so the era selector
-swaps the whole set. With **Lock loop** on, all voices wrap at the shortest
-active stem so layers cannot drift apart.
+### Audio stems
 
-## Art assets
+The repository deliberately excludes the extracted audio (`assets/audio_ogg`
+and `assets/audio` are git-ignored; the game audio is not redistributable).
+Without stems the desk still runs, but playback reports missing files.
 
-The UI uses the in-game TFT champion banners, not the splash wallpaper:
+Put the converted stems in `assets/audio_ogg`:
 
 ```
-tft10_<champion>.tft_set10.png          256x128 banner  -> src/assets/heroes/banner
-tft10_<champion>_mobile.tft_set10.png   512x512 splash  -> src/assets/heroes/wallpaper
+assets/audio_ogg/
+  kda_late_drums.ogg
+  kda_late_main.ogg
+  ...
+  durations.json
 ```
 
-Both are downloaded from CommunityDragon's patch 13.24 TFT assets and converted
-to WebP (384x192 and 384x384). The banner is the primary hero tile everywhere;
-the square splash is used only for the blurred global backdrop.
+`tools/convert_stems.py` converts the AAC rips in `assets/audio` into the OGG
+files, and `tools/build_dataset.py` rebuilds the JSON data. The **Settings ->
+Audio diagnostics** card shows the resolved folder, the number of stems found,
+missing requirements and a 3-stem decode test.
+
+### Hero art and stage
+
+The 120 hero images and the stage backdrop are committed, so a fresh clone has
+the full UI immediately. Regenerate them with:
 
 ```powershell
 python tools/fetch_hero_art.py     # banner/ + wallpaper/ + credits.json
-python tools/make_board_art.py     # src/assets/board/stage.webp + grain.png
+python tools/make_board_art.py     # stage.webp + grain.png
 ```
 
-Both scripts are idempotent; pass `--force` to `fetch_hero_art.py` to download
-again. Vite fingerprints the images into the bundle, so dev and packaged builds
-use the same paths. `credits.json` records the source URL for both renders.
+Both scripts are idempotent; `--force` on the first re-downloads every portrait.
+Restart Vite after regenerating art because `import.meta.glob` is evaluated once.
 
-## Localized data
+## Using the desk
 
-`tools/build_dataset.py` merges `en_us.json` and `zh_cn.json` from the patch
-13.24 TFT data:
+1. Pick a champion in the pool, or switch the pool to **Trait** grouping.
+2. Left-click to deploy, right-click to remove, drag a hex to move or swap,
+   double-click to star up.
+3. Select a unit to open its spotlight: upgrade, remove, or set a Headliner.
+4. Press **Play**, then mix live with the layer switches, faders and overrides.
+5. Switch **Mode** to **Style Lab** to compose without champions; the layer racks,
+   filters and hearts are all there.
+6. Use the two arrows in the transport to export/import a lineup JSON.
+7. **Radio** auto-builds boards; `Next station` skips, stopping restores your
+   previous board and settings.
 
-* `units[].nameZh` - Simplified Chinese champion name
-* `rules.traitNamesZh` - display trait name -> Chinese label
-* `rules.styleNamesZh` - style id -> Chinese style label
+Lineup files are portable JSON:
 
-The JSON is written with `\u` escapes, so the repository stays ASCII while the
-UI renders Chinese. `src/i18n/index.ts` exposes `championName`, `traitName` and
-`styleName`, which every component uses instead of the raw data fields.
+```json
+{
+  "format": "set10-desk-lineup",
+  "version": 1,
+  "set": 10,
+  "patch": "13.24",
+  "era": "late",
+  "mixMode": "board",
+  "units": [
+    { "apiName": "TFT10_Jhin", "star": 2, "slot": 10, "headliner": "Maestro" }
+  ],
+  "layers": {
+    "drums": { "enabled": true, "volume": 1, "override": null },
+    "chords": { "enabled": true, "volume": 1, "override": null },
+    "top": { "enabled": true, "volume": 1, "override": null }
+  }
+}
+```
 
-## Layout
+## Architecture
 
 ```
-data/set10_units.json        60 units with cost, traits, style, art and nameZh
-data/music_rules.json        styles, layers, thresholds, stems and Chinese names
-src/core/rules.ts            weight + layer assignment + style palette
-src/core/combos.ts           all 458 usable style combinations and assignments
-src/core/audio.ts            Web Audio mixer + master analyser
+Vue 3 + TypeScript (Vite)
+  ChampionPool / BoardStage / StyleLab / HeroSpotlight / TraitsPanel
+  MixerPanel / Waveform / TransportBar / GlobalWallpaper
+        |
+  src/stores/desk.ts  (board, plan, radio, lineup, transport)
+  src/stores/likes.ts (persisted combo/style ranking)
+        |
+  src/core/  data.ts  rules.ts  combos.ts  audio.ts  art.ts
+        |
+  Tauri 2 / Rust
+    asset_root, scan_stems, load_data, load_settings,
+    save_settings, log_event
+```
+
+Key implementation notes:
+
+- `src/core/rules.ts` computes style weights, solo-act spotlighting and the
+  three-layer plan.
+- `src/core/combos.ts` generates every usable 1-3 style group with a perfect
+  style-to-distinct-layer matching, so every style in a combo contributes.
+- `src/core/audio.ts` uses one Web Audio voice per stem file, ramps gains, keeps
+  a shared loop region and exposes the master analyser.
+- `src/stores/desk.ts` owns board editing, manual mode, the 165 s radio cycle and
+  lineup import/export.
+- Packaged builds read `data/` and `assets/audio_ogg/` through Rust commands and
+  the Tauri asset protocol; the hero art is bundled by Vite.
+
+### Rust commands
+
+| command | purpose |
+| --- | --- |
+| `asset_root` | resolved stem folder |
+| `scan_stems` | list OGG stems, durations, missing requirements |
+| `load_data` | read the JSON datasets from the repo/resource folder |
+| `load_settings` / `save_settings` | JSON settings in the app config dir |
+| `log_event` | mirror mixer diagnostics to stdout |
+
+## Project layout
+
+```
+data/set10_units.json        60 units: cost, traits, style, art, nameZh
+data/music_rules.json        styles, layers, thresholds, stems, zh labels
+src/core/rules.ts            weights, solo acts, layer assignment
+src/core/combos.ts           458 usable style combinations
+src/core/audio.ts            Web Audio mixer + analyser
 src/core/data.ts             data loading, Tauri commands, stem URLs
-src/core/art.ts              banner, wallpaper and stage lookup
-src/stores/desk.ts           board editing, manual mix, radio, transport, lineup
-src/stores/likes.ts          persisted style/combo likes and ranking
-src/components/              desk, pool, board, spotlight, traits, mixer,
-                             StyleLab, PoolCard, Waveform, GlobalWallpaper
+src/core/art.ts              banner / wallpaper / stage lookup
+src/stores/desk.ts           reactive desk, radio, lineups
+src/stores/likes.ts          persisted style/combo likes
+src/components/              pool, board, spotlight, traits, mixer, StyleLab,
+                             PoolCard, Waveform, GlobalWallpaper
 src/assets/heroes/banner/    60 TFT champion banners
 src/assets/heroes/wallpaper/ 60 square set splashes
-src/assets/board/            generated stage backdrop and grain
+src/assets/board/            generated stage and grain
+src/assets/screenshots/      README screenshots
 src/i18n/                    English + Simplified Chinese messages
-src-tauri/                   Rust backend and Tauri configuration
-assets/audio_ogg/            converted stems (68 files, git ignored)
-tools/                       extraction, conversion, dataset, art scripts
-.agents/skills/              reusable know-how for this pipeline
+src-tauri/                   Rust backend and Tauri config
+assets/audio_ogg/            converted stems (git ignored)
+tools/                       extraction, conversion, dataset and art scripts
+.agents/skills/              reusable pipeline know-how
 tmp/                         scratch space (never committed)
 ```
 
-## Provenance of the audio and art
+## Regenerating data
 
-The stems were extracted from the Set 10 build of the game and match the shipped
-layer inventory (`drums` / `main` / `secondary` renders, early and late);
-`tools/convert_stems.py` regenerates the Ogg copies used here. The rules data was
-recovered from the 13.24 client WADs, which the skills under `.agents/skills`
-explain how to fetch and unpack. The banners and splashes are the same set art
-Riot shipped for the set; `src/assets/heroes/credits.json` records every URL.
+```powershell
+curl.exe -k -o tmp/tftdata/en_us.json https://raw.communitydragon.org/13.24/cdragon/tft/en_us.json
+curl.exe -k -o tmp/tftdata/zh_cn.json  https://raw.communitydragon.org/13.24/cdragon/tft/zh_cn.json
+python tools/build_dataset.py
+```
 
-## Known uncertainty
+The script writes `nameZh`, `traitNamesZh` and `styleNamesZh` with `\u` escapes,
+so the repository stays ASCII while the UI renders Chinese.
 
-The layer *inventory* and switch ids are read straight from the shipped data.
-The weighting rule is a reconstruction: unit counts and tier bonuses are
-confirmed by Riot's interview, while the exact tie-breaking and the way partial
-bands split layers are inferred - which is why each layer has a manual override,
-the Style Lab exists and Settings shows the audit. Likes are local to this
-installation (no account or network backend); they reorder the generated
-combinations on this machine.
+## Troubleshooting
+
+**Port 8787 already in use** - `bun run app:dev` uses
+`tools/dev-server-guard.mjs` and reuses an existing Vite server. Vite binds
+`127.0.0.1`; use that instead of `localhost` (which may resolve to `::1`).
+
+**No sound** - open Settings -> Audio diagnostics. The stem folder must contain
+the OGG files and `durations.json`. Browser mode serves them from Vite; packaged
+builds resolve `assets/audio_ogg` through `asset_root` and the asset protocol.
+
+**Changes not showing in the browser** - stop and restart `bun run dev` if a Vue
+component's transformed module looks stale; Vite occasionally keeps an old
+transform for a single file during rapid edits.
+
+**Drag does not work in the Tauri window** - keep
+`app.windows[0].dragDropEnabled` set to `false`; otherwise WebView2's file-drop
+handler can swallow HTML5 drag events.
+
+**Packaged app cannot find data** - `load_data` reads the bundled `data`
+resource. Check `src-tauri/tauri.conf.json -> bundle.resources` includes both
+`../data` and `../assets/audio_ogg`.
+
+## Provenance and credits
+
+- Audio: extracted from the Set 10 build and community rips; the OGG conversion
+  and stem manifest live in `tools/`. Audio files are not committed.
+- Art: TFT set 10 champion banners/splashes from CommunityDragon's patch 13.24
+  game assets; `src/assets/heroes/credits.json` lists every source URL.
+- Rules: the 13.24 `Map22.wad.client` switch/state table, CommunityDragon set
+  data, and Riot's Remix Rumble design interview.
+- This is a fan project. Teamfight Tactics and its assets belong to Riot Games;
+  it is not affiliated with or endorsed by Riot.
+
+Reusable research and build notes live in `.agents/skills/`:
+`tft-set10-music-system`, `tft-champion-portraits`, `lol-wad-extraction`,
+`riot-old-patch-extraction`, `tauri-vue-mixing-desk` and
+`browser-cdp-smoke-test`.
+
+## Known limitations
+
+- The weight formula and tie-break are reconstructed; the in-game selection code
+  is native and not shipped as a readable rule table.
+- Likes are stored locally (no account or server); there is no global like count.
+- Emblems, augments, portals, music phases and stingers are out of scope.
+- The app is Windows-first (Tauri/WebView2); the web dev server also runs on the
+  other desktop platforms.
