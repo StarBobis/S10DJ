@@ -199,6 +199,24 @@
    }
   }
  },
+ "styleNamesZh": {
+  "8bit": "8\u6bd4\u7279",
+  "classical": "\u620f\u547d\u5e08",
+  "country": "\u4e61\u6751\u97f3\u4e50",
+  "dj": "DJ\u5a11\u5a1c",
+  "edm": "\u7535\u5b50\u821e\u66f2",
+  "emo": "EMO",
+  "funk": "\u8fea\u65af\u79d1",
+  "hyperpop": "\u9ad8\u80fd\u6d41\u884c",
+  "illbeats": "\u5927\u89e6\u6253\u51fb\u4e50",
+  "jazz": "\u7235\u58eb\u4e50",
+  "kda": "K/DA",
+  "none": "\u57fa\u7840",
+  "pentakill": "\u4e94\u6740\u6447\u6eda",
+  "popband": "\u5fc3\u4e4b\u94a2",
+  "punkrock": "\u670b\u514b",
+  "truedamage": "\u771f\u5b9e\u4f24\u5bb3"
+ },
  "styles": {
   "8bit": {
    "layers": [
@@ -330,6 +348,38 @@
   "Pentakill": "pentakill",
   "Punk": "punkrock",
   "True Damage": "truedamage"
+ },
+ "traitNamesZh": {
+  "8-bit": "8\u6bd4\u7279",
+  "Base": "\u57fa\u7840",
+  "Big Shot": "\u5927\u8155\u5c04\u624b",
+  "Breakout": "\u53cc\u4fee\u51fa\u9053",
+  "Bruiser": "\u683c\u6597\u5bb6",
+  "Country": "\u4e61\u6751\u97f3\u4e50",
+  "Crowd Diver": "\u97f3\u6d6a\u523a\u5ba2",
+  "Dazzler": "\u8000\u5149\u4f7f",
+  "Disco": "\u8fea\u65af\u79d1",
+  "EDM": "\u7535\u5b50\u821e\u66f2",
+  "Edgelord": "\u5200\u950b\u9886\u4e3b",
+  "Emo": "EMO",
+  "Executioner": "\u88c1\u51b3\u4f7f",
+  "Guardian": "\u62a4\u536b",
+  "Heartsteel": "\u5fc3\u4e4b\u94a2",
+  "Hyperpop": "\u9ad8\u80fd\u6d41\u884c",
+  "ILLBEATS": "\u5927\u89e6\u6253\u51fb\u4e50",
+  "Jazz": "\u7235\u58eb\u4e50",
+  "K/DA": "K/DA",
+  "Maestro": "\u620f\u547d\u5e08",
+  "Mixmaster": "DJ\u5a11\u5a1c",
+  "Mosher": "\u821e\u8005",
+  "Pentakill": "\u4e94\u6740\u6447\u6eda",
+  "Punk": "\u670b\u514b",
+  "Rapidfire": "\u75be\u5c04\u67aa\u624b",
+  "Sentinel": "\u79d8\u672f\u62a4\u536b",
+  "Spellweaver": "\u6cd5\u5e08",
+  "Superfan": "\u8d85\u7ea7\u7c89\u4e1d",
+  "True Damage": "\u771f\u5b9e\u4f24\u5bb3",
+  "Wildcard": "\u5f71\u6d41\u4e4b\u9570"
  },
  "traitThresholds": {
   "8-bit": [

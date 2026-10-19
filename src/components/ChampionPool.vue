@@ -15,17 +15,18 @@ import {
 } from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, championName, language } = useI18n();
 
 const query = ref('');
 const cost = ref(0);
+const manualMode = computed(() => state.settings.mixMode === 'manual');
 
 const filtered = computed(() => {
   const needle = query.value.trim().toLowerCase();
   return state.units.filter((unit) => {
     if (cost.value && unit.cost !== cost.value) return false;
     if (!needle) return true;
-    const haystack = `${unit.name} ${unit.traits.join(' ')} ${unit.style}`.toLowerCase();
+    const haystack = `${unit.name} ${unit.nameZh ?? ''} ${unit.traits.join(' ')} ${unit.style}`.toLowerCase();
     return haystack.includes(needle);
   });
 });
@@ -57,6 +58,8 @@ function onDragStart(event: DragEvent, unit: Unit) {
       <span class="pool-count">{{ filtered.length }}/{{ state.units.length }}</span>
     </header>
 
+    <p v-if="manualMode" class="pool-mode-note">{{ t('lab.poolIgnored') }}</p>
+
     <label class="search-field">
       <span aria-hidden="true">&#8981;</span>
       <input v-model="query" type="search" :placeholder="t('desk.search')" spellcheck="false" />
@@ -85,25 +88,25 @@ function onDragStart(event: DragEvent, unit: Unit) {
           class="pool-card"
           :class="{ owned: Boolean(entryFor(unit.apiName)) }"
           draggable="true"
-          :title="`${unit.name} - ${unit.cost}g`"
+          :title="`${championName(unit)} - ${unit.cost}g`"
           @click="addToBoard(unit.apiName)"
           @contextmenu.prevent="removeFromBoard(unit.apiName)"
           @mouseenter="previewUnit(unit.apiName)"
           @focus="previewUnit(unit.apiName)"
           @dragstart="onDragStart($event, unit)"
         >
-          <span class="pool-art-wrap" :style="{ '--cost': `var(--cost-${unit.cost})` }">
-            <ArtImage class="pool-art" :art="unit.art" :alt="unit.name" />
-          </span>
-          <span class="pool-info">
-            <span class="pool-name">{{ unit.name }}</span>
-            <span class="pool-meta">
-              <span class="cost-pip" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}</span>
-              <StyleBadge :style="unit.style" small />
+          <span class="pool-banner">
+            <ArtImage class="pool-banner-art" :art="unit.art" :alt="championName(unit)" />
+            <span class="pool-banner-shade" />
+            <span class="pool-cost" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}</span>
+            <span v-if="entryFor(unit.apiName)" class="pool-star">
+              {{ '\u2605'.repeat(entryFor(unit.apiName)?.star ?? 1) }}
             </span>
+            <span class="pool-name">{{ championName(unit) }}</span>
           </span>
-          <span v-if="entryFor(unit.apiName)" class="pool-star">
-            {{ '\u2605'.repeat(entryFor(unit.apiName)?.star ?? 1) }}
+          <span class="pool-meta">
+            <StyleBadge :style="unit.style" small />
+            <span v-if="language === 'zh-CN'" class="pool-en">{{ unit.name }}</span>
           </span>
         </button>
       </div>

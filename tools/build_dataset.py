@@ -4,8 +4,9 @@ Inputs (downloaded by tools/fetch_tft_data.ps1):
   tmp/tftdata/en_us.json, tmp/tftdata/zh_cn.json   (patch 13.24 TFT data)
 
 Outputs:
-  data/set10_units.json   unit -> traits + music style
-  data/music_rules.json   styles, layer availability, trait -> style mapping
+  data/set10_units.json   unit -> traits, music style, art key, zh_CN name
+  data/music_rules.json   styles, layer availability, trait -> style mapping,
+                          Chinese trait and style labels
 
 Evidence for the style table comes from the shipped game data of patch 13.24
 (Map22.wad.client -> TFT10 music data chunk), which exposes the Wwise switch
@@ -144,10 +145,38 @@ def stem_index():
     return index
 
 
+def load_localized_names():
+    """Map champion api names and trait display names to their zh_CN labels.
+
+    The English set data and the Chinese set data share api names, so the
+    Chinese file can be treated as a lookup table.  Falling back to the English
+    label keeps the build usable when only en_us.json was downloaded.
+    """
+    names = {}
+    trait_names = {}
+    path = os.path.join(TFT, "zh_cn.json")
+    if not os.path.exists(path):
+        return names, trait_names
+    with open(path, encoding="utf-8") as fh:
+        zh = json.load(fh)
+    set10 = zh["sets"]["10"]
+    for champ in set10["champions"]:
+        api = champ.get("apiName")
+        if api and champ.get("name"):
+            names[api] = champ["name"]
+    for trait in set10["traits"]:
+        api = trait.get("apiName")
+        if api and trait.get("name"):
+            trait_names[api] = trait["name"]
+    return names, trait_names
+
+
 def build_units():
     with open(os.path.join(TFT, "en_us.json"), encoding="utf-8") as fh:
         en = json.load(fh)
+    zh_names, zh_traits = load_localized_names()
     set10 = en["sets"]["10"]
+    traits_by_api = {t.get("apiName"): t for t in set10["traits"]}
     thresholds = {}
     for trait in set10["traits"]:
         name = trait.get("name")
@@ -177,6 +206,7 @@ def build_units():
             {
                 "apiName": api,
                 "name": champ.get("name"),
+                "nameZh": zh_names.get(api, champ.get("name")),
                 "cost": champ.get("cost"),
                 "traits": traits,
                 "musicTraits": music_traits,
@@ -185,7 +215,20 @@ def build_units():
             }
         )
     units.sort(key=lambda u: (u["cost"], u["name"] or ""))
-    return units, thresholds
+
+    trait_names_zh = {}
+    for api, trait in traits_by_api.items():
+        display = trait.get("name")
+        if display and api in zh_traits:
+            trait_names_zh[display] = zh_traits[api]
+    trait_names_zh.setdefault("Base", "\u57fa\u7840")
+
+    style_names_zh = {"none": "\u57fa\u7840"}
+    for style, display in {value: key for key, value in TRAIT_DISPLAY_STYLE.items()}.items():
+        if display in trait_names_zh:
+            style_names_zh[style] = trait_names_zh[display]
+
+    return units, thresholds, trait_names_zh, style_names_zh
 
 
 def build_costs(units):
@@ -199,7 +242,7 @@ def build_costs(units):
 
 def main():
     os.makedirs(DATA, exist_ok=True)
-    units, thresholds = build_units()
+    units, thresholds, trait_names_zh, style_names_zh = build_units()
     with open(os.path.join(DATA, "set10_units.json"), "w", encoding="utf-8") as fh:
         json.dump({"set": 10, "patch": "13.24", "units": units}, fh, indent=1, sort_keys=True)
 
@@ -219,6 +262,8 @@ def main():
         # ("K/DA", "8-bit", ...), while traitToStyle uses the api suffix.
         # The rules engine needs the display-name view to award tier bonuses.
         "traitDisplayStyle": dict(TRAIT_DISPLAY_STYLE),
+        "traitNamesZh": trait_names_zh,
+        "styleNamesZh": style_names_zh,
         "traitThresholds": thresholds,
         "stems": stem_index(),
         "weights": {

@@ -3,8 +3,7 @@ import { computed } from 'vue';
 import ArtImage from './ArtImage.vue';
 import StyleBadge from './StyleBadge.vue';
 import { useI18n } from '../i18n';
-import { heroArt } from '../core/art';
-import { STYLE_LABEL, styleColor } from '../core/rules';
+import { styleColor } from '../core/rules';
 import {
   focusBoardUnit,
   focusUnit,
@@ -14,11 +13,10 @@ import {
 } from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, championName, traitName, language } = useI18n();
 
 const unit = computed(() => focusUnit.value);
 const entry = computed(() => focusBoardUnit.value);
-const backdrop = computed(() => (unit.value ? heroArt(unit.value.art) : null));
 const accent = computed(() => styleColor(unit.value?.style ?? 'none'));
 
 const chips = computed(() => {
@@ -41,26 +39,19 @@ function remove() {
 <template>
   <section class="panel spotlight" :style="{ '--style': accent }">
     <template v-if="unit">
-      <div
-        v-if="backdrop"
-        class="spot-backdrop"
-        :style="{ backgroundImage: `url(${backdrop})` }"
-        aria-hidden="true"
-      />
-      <div class="spot-veil" aria-hidden="true" />
-      <div class="spot-content">
-        <header class="spot-head">
-          <span class="spot-art-wrap">
-            <ArtImage class="spot-art" :art="unit.art" :alt="unit.name" eager />
-          </span>
-          <span class="spot-title">
-            <span class="spot-cost" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}g</span>
-            <h2>{{ unit.name }}</h2>
-            <StyleBadge :style="unit.style" label />
-          </span>
-          <span v-if="entry" class="spot-stars">{{ '\u2605'.repeat(entry.star) }}</span>
-        </header>
+      <div class="spot-banner">
+        <ArtImage class="spot-banner-art" :art="unit.art" kind="banner" :alt="championName(unit)" eager />
+        <span class="spot-banner-shade" />
+        <span class="spot-cost" :style="{ '--cost': `var(--cost-${unit.cost})` }">{{ unit.cost }}g</span>
+        <span v-if="entry" class="spot-stars">{{ '\u2605'.repeat(entry.star) }}</span>
+        <div class="spot-banner-text">
+          <h2>{{ championName(unit) }}</h2>
+          <span v-if="language === 'zh-CN'" class="spot-en">{{ unit.name }}</span>
+          <StyleBadge :style="unit.style" label />
+        </div>
+      </div>
 
+      <div class="spot-content">
         <div class="spot-traits">
           <span
             v-for="chip in chips"
@@ -68,9 +59,9 @@ function remove() {
             class="trait-chip"
             :class="{ music: Boolean(chip.style) }"
             :style="{ '--chip': chip.color }"
-            :title="chip.style ? STYLE_LABEL[chip.style] : chip.trait"
+            :title="traitName(chip.trait)"
           >
-            {{ chip.trait }}
+            {{ traitName(chip.trait) }}
           </span>
         </div>
 

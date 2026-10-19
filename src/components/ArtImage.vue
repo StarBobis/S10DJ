@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { heroArt } from '../core/art';
+import { heroBanner, heroWallpaper } from '../core/art';
 
-const props = defineProps<{
-  art: string;
-  alt?: string;
-  eager?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    art: string;
+    alt?: string;
+    eager?: boolean;
+    /** Banner is the TFT UI asset; wallpaper is only for the global backdrop. */
+    kind?: 'banner' | 'wallpaper';
+  }>(),
+  { kind: 'banner', eager: false },
+);
 
 const failed = ref(false);
-const url = computed(() => heroArt(props.art));
+const url = computed(() =>
+  props.kind === 'wallpaper' ? heroWallpaper(props.art) : heroBanner(props.art),
+);
 const initials = computed(() => props.art.slice(0, 2).toUpperCase());
 
 watch(url, () => {

@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import SideBar from './components/SideBar.vue';
 import TitleBar from './components/TitleBar.vue';
 import DeskView from './components/DeskView.vue';
+import GlobalWallpaper from './components/GlobalWallpaper.vue';
 import SettingsPage from './components/SettingsPage.vue';
 import { initDesk, useDesk, clearError } from './stores/desk';
 import { useI18n } from './i18n';
@@ -18,6 +19,7 @@ onMounted(() => {
 
 <template>
   <div class="app-shell" :class="{ collapsed: state.settings.sidebarCollapsed }">
+    <GlobalWallpaper />
     <TitleBar />
     <div class="app-body">
       <SideBar :view="view" @navigate="view = $event" />

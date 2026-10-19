@@ -10,6 +10,7 @@
     "Emo"
    ],
    "name": "Annie",
+   "nameZh": "\u5b89\u59ae",
    "style": "emo",
    "traits": [
     "Emo",
@@ -24,6 +25,7 @@
     "8-bit"
    ],
    "name": "Corki",
+   "nameZh": "\u5e93\u5947",
    "style": "8bit",
    "traits": [
     "8-bit",
@@ -38,6 +40,7 @@
     "K/DA"
    ],
    "name": "Evelynn",
+   "nameZh": "\u4f0a\u8299\u7433",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -52,6 +55,7 @@
     "Punk"
    ],
    "name": "Jinx",
+   "nameZh": "\u91d1\u514b\u4e1d",
    "style": "punkrock",
    "traits": [
     "Punk",
@@ -66,6 +70,7 @@
     "Heartsteel"
    ],
    "name": "K'Sante",
+   "nameZh": "\u594e\u6851\u63d0",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -80,6 +85,7 @@
     "True Damage"
    ],
    "name": "Kennen",
+   "nameZh": "\u51ef\u5357",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -95,6 +101,7 @@
     "K/DA"
    ],
    "name": "Lillia",
+   "nameZh": "\u8389\u8389\u5a05",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -110,6 +117,7 @@
     "Disco"
    ],
    "name": "Nami",
+   "nameZh": "\u5a1c\u7f8e",
    "style": "funk",
    "traits": [
     "Disco",
@@ -124,6 +132,7 @@
     "Pentakill"
    ],
    "name": "Olaf",
+   "nameZh": "\u5965\u62c9\u592b",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -138,6 +147,7 @@
     "Country"
    ],
    "name": "Tahm Kench",
+   "nameZh": "\u5854\u59c6",
    "style": "country",
    "traits": [
     "Country",
@@ -152,6 +162,7 @@
     "Disco"
    ],
    "name": "Taric",
+   "nameZh": "\u5854\u91cc\u514b",
    "style": "funk",
    "traits": [
     "Disco",
@@ -166,6 +177,7 @@
     "Punk"
    ],
    "name": "Vi",
+   "nameZh": "\u851a",
    "style": "punkrock",
    "traits": [
     "Punk",
@@ -180,6 +192,7 @@
     "True Damage"
    ],
    "name": "Yasuo",
+   "nameZh": "\u4e9a\u7d22",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -194,6 +207,7 @@
     "Heartsteel"
    ],
    "name": "Aphelios",
+   "nameZh": "\u5384\u6590\u7409\u65af",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -208,6 +222,7 @@
     "Jazz"
    ],
    "name": "Bard",
+   "nameZh": "\u5df4\u5fb7",
    "style": "jazz",
    "traits": [
     "Jazz",
@@ -222,6 +237,7 @@
     "8-bit"
    ],
    "name": "Garen",
+   "nameZh": "\u76d6\u4f26",
    "style": "8bit",
    "traits": [
     "8-bit",
@@ -236,6 +252,7 @@
     "Pentakill"
    ],
    "name": "Gnar",
+   "nameZh": "\u7eb3\u5c14",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -251,6 +268,7 @@
     "Disco"
    ],
    "name": "Gragas",
+   "nameZh": "\u53e4\u62c9\u52a0\u65af",
    "style": "funk",
    "traits": [
     "Disco",
@@ -266,6 +284,7 @@
     "EDM"
    ],
    "name": "Jax",
+   "nameZh": "\u8d3e\u514b\u65af",
    "style": "edm",
    "traits": [
     "EDM",
@@ -280,6 +299,7 @@
     "K/DA"
    ],
    "name": "Kai'Sa",
+   "nameZh": "\u5361\u838e",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -294,6 +314,7 @@
     "Country"
    ],
    "name": "Katarina",
+   "nameZh": "\u5361\u7279\u7433\u5a1c",
    "style": "country",
    "traits": [
     "Country",
@@ -308,6 +329,7 @@
     "Pentakill"
    ],
    "name": "Kayle",
+   "nameZh": "\u51ef\u5c14",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -322,6 +344,7 @@
     "Punk"
    ],
    "name": "Pantheon",
+   "nameZh": "\u6f58\u68ee",
    "style": "punkrock",
    "traits": [
     "Punk",
@@ -336,6 +359,7 @@
     "True Damage"
    ],
    "name": "Senna",
+   "nameZh": "\u8d5b\u5a1c",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -350,6 +374,7 @@
     "K/DA"
    ],
    "name": "Seraphine",
+   "nameZh": "\u8428\u52d2\u82ac\u59ae",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -364,6 +389,7 @@
     "Punk"
    ],
    "name": "Twitch",
+   "nameZh": "\u56fe\u5947",
    "style": "punkrock",
    "traits": [
     "Punk",
@@ -378,6 +404,7 @@
     "Emo"
    ],
    "name": "Amumu",
+   "nameZh": "\u963f\u6728\u6728",
    "style": "emo",
    "traits": [
     "Emo",
@@ -392,6 +419,7 @@
     "True Damage"
    ],
    "name": "Ekko",
+   "nameZh": "\u827e\u514b",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -407,6 +435,7 @@
     "Hyperpop"
    ],
    "name": "Lulu",
+   "nameZh": "\u7490\u7490",
    "style": "hyperpop",
    "traits": [
     "Hyperpop",
@@ -421,6 +450,7 @@
     "EDM"
    ],
    "name": "Lux",
+   "nameZh": "\u62c9\u514b\u4e1d",
    "style": "edm",
    "traits": [
     "EDM",
@@ -435,6 +465,7 @@
     "Jazz"
    ],
    "name": "Miss Fortune",
+   "nameZh": "\u5384\u8fd0\u5c0f\u59d0",
    "style": "jazz",
    "traits": [
     "Jazz",
@@ -449,6 +480,7 @@
     "Pentakill"
    ],
    "name": "Mordekaiser",
+   "nameZh": "\u83ab\u5fb7\u51ef\u6492",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -463,6 +495,7 @@
     "K/DA"
    ],
    "name": "Neeko",
+   "nameZh": "\u59ae\u853b",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -478,6 +511,7 @@
     "8-bit"
    ],
    "name": "Riven",
+   "nameZh": "\u9510\u96ef",
    "style": "8bit",
    "traits": [
     "8-bit",
@@ -492,6 +526,7 @@
     "Country"
    ],
    "name": "Samira",
+   "nameZh": "\u838e\u5f25\u62c9",
    "style": "country",
    "traits": [
     "Country",
@@ -506,6 +541,7 @@
     "Heartsteel"
    ],
    "name": "Sett",
+   "nameZh": "\u745f\u63d0",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -521,6 +557,7 @@
     "Country"
    ],
    "name": "Urgot",
+   "nameZh": "\u5384\u52a0\u7279",
    "style": "country",
    "traits": [
     "Country",
@@ -535,6 +572,7 @@
     "Emo"
    ],
    "name": "Vex",
+   "nameZh": "\u8587\u53e4\u4e1d",
    "style": "emo",
    "traits": [
     "Emo",
@@ -549,6 +587,7 @@
     "Heartsteel"
    ],
    "name": "Yone",
+   "nameZh": "\u6c38\u6069",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -564,6 +603,7 @@
     "K/DA"
    ],
    "name": "Ahri",
+   "nameZh": "\u963f\u72f8",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -578,6 +618,7 @@
     "K/DA"
    ],
    "name": "Akali",
+   "nameZh": "\u963f\u5361\u4e3d",
    "style": "kda",
    "traits": [
     "K/DA",
@@ -593,6 +634,7 @@
     "True Damage"
    ],
    "name": "Akali",
+   "nameZh": "\u963f\u5361\u4e3d",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -608,6 +650,7 @@
     "Disco"
    ],
    "name": "Blitzcrank",
+   "nameZh": "\u5e03\u91cc\u8328",
    "style": "funk",
    "traits": [
     "Disco",
@@ -622,6 +665,7 @@
     "8-bit"
    ],
    "name": "Caitlyn",
+   "nameZh": "\u51ef\u7279\u7433",
    "style": "8bit",
    "traits": [
     "8-bit",
@@ -636,6 +680,7 @@
     "Heartsteel"
    ],
    "name": "Ezreal",
+   "nameZh": "\u4f0a\u6cfd\u745e\u5c14",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -650,6 +695,7 @@
     "Pentakill"
    ],
    "name": "Karthus",
+   "nameZh": "\u5361\u5c14\u8428\u65af",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -664,6 +710,7 @@
     "Emo"
    ],
    "name": "Poppy",
+   "nameZh": "\u6ce2\u6bd4",
    "style": "emo",
    "traits": [
     "Emo",
@@ -678,6 +725,7 @@
     "Country"
    ],
    "name": "Thresh",
+   "nameZh": "\u9524\u77f3",
    "style": "country",
    "traits": [
     "Country",
@@ -692,6 +740,7 @@
     "Disco"
    ],
    "name": "Twisted Fate",
+   "nameZh": "\u5d14\u65af\u7279",
    "style": "funk",
    "traits": [
     "Disco",
@@ -706,6 +755,7 @@
     "Pentakill"
    ],
    "name": "Viego",
+   "nameZh": "\u4f5b\u8036\u6208",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -720,6 +770,7 @@
     "EDM"
    ],
    "name": "Zac",
+   "nameZh": "\u624e\u514b",
    "style": "edm",
    "traits": [
     "EDM",
@@ -734,6 +785,7 @@
     "EDM"
    ],
    "name": "Zed",
+   "nameZh": "\u52ab",
    "style": "edm",
    "traits": [
     "EDM",
@@ -748,6 +800,7 @@
     "ILLBEATS"
    ],
    "name": "Illaoi",
+   "nameZh": "\u4fc4\u6d1b\u4f0a",
    "style": "illbeats",
    "traits": [
     "ILLBEATS",
@@ -762,6 +815,7 @@
     "Maestro"
    ],
    "name": "Jhin",
+   "nameZh": "\u70ec",
    "style": "classical",
    "traits": [
     "Maestro",
@@ -776,6 +830,7 @@
     "Heartsteel"
    ],
    "name": "Kayn",
+   "nameZh": "\u51ef\u9690",
    "style": "popband",
    "traits": [
     "Heartsteel",
@@ -791,6 +846,7 @@
     "Jazz"
    ],
    "name": "Lucian",
+   "nameZh": "\u5362\u9521\u5b89",
    "style": "jazz",
    "traits": [
     "Jazz",
@@ -805,6 +861,7 @@
     "True Damage"
    ],
    "name": "Qiyana",
+   "nameZh": "\u5947\u4e9a\u5a1c",
    "style": "truedamage",
    "traits": [
     "True Damage",
@@ -819,6 +876,7 @@
     "Mixmaster"
    ],
    "name": "Sona",
+   "nameZh": "\u5a11\u5a1c",
    "style": "dj",
    "traits": [
     "Mixmaster",
@@ -833,6 +891,7 @@
     "Pentakill"
    ],
    "name": "Yorick",
+   "nameZh": "\u7ea6\u91cc\u514b",
    "style": "pentakill",
    "traits": [
     "Pentakill",
@@ -848,6 +907,7 @@
     "Hyperpop"
    ],
    "name": "Ziggs",
+   "nameZh": "\u5409\u683c\u65af",
    "style": "hyperpop",
    "traits": [
     "Hyperpop",

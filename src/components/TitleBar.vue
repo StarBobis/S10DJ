@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { inTauri } from '../core/data';
 import { useI18n } from '../i18n';
-import { toggleSidebar } from '../stores/desk';
 
 const { t } = useI18n();
 const isTauri = computed(() => inTauri());
@@ -19,7 +18,7 @@ async function windowAction(action: 'minimize' | 'maximize' | 'close') {
 
 <template>
   <header class="titlebar" data-tauri-drag-region>
-    <button class="icon-button" :title="t('nav.collapse')" @click="toggleSidebar()">&#9776;</button>
+    <span class="brand-mark" data-tauri-drag-region>S10</span>
     <div class="title-block" data-tauri-drag-region>
       <span class="app-title" data-tauri-drag-region>{{ t('app.title') }}</span>
       <span class="app-subtitle" data-tauri-drag-region>{{ t('app.subtitle') }}</span>

@@ -24,6 +24,7 @@ type Voice = { node: AudioBufferSourceNode; gain: GainNode; file: string };
 export class StemMixer {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private analyserNode: AnalyserNode | null = null;
   private voices = new Map<string, Voice>();
   private buffers = new Map<string, AudioBuffer>();
   private loading = new Map<string, Promise<AudioBuffer | null>>();
@@ -46,12 +47,20 @@ export class StemMixer {
     return this.playing;
   }
 
+  /** Live analyser for the waveform display (null until the first play). */
+  get analyser(): AnalyserNode | null {
+    return this.analyserNode;
+  }
+
   private ensureContext(): AudioContext {
     if (!this.ctx) {
       this.ctx = new AudioContext();
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.value = this.master;
-      this.masterGain.connect(this.ctx.destination);
+      this.analyserNode = this.ctx.createAnalyser();
+      this.analyserNode.fftSize = 1024;
+      this.analyserNode.smoothingTimeConstant = 0.82;
+      this.masterGain.connect(this.analyserNode).connect(this.ctx.destination);
     }
     return this.ctx;
   }

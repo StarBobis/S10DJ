@@ -1,6 +1,6 @@
 ---
 name: tauri-vue-mixing-desk
-description: Build and extend the Tauri 2 + Vue 3 + TypeScript desktop mixing desk in this repository, including the single-page board/traits/mixer desk, the frameless WinUI-style shell, the Rust command surface, the Set 10 portrait pipeline and the Web Audio layer mixer. Use when changing the app shell, adding a command, fixing playback scheduling, editing board interactions or adding a locale.
+description: Build and extend the Tauri 2 + Vue 3 + TypeScript desktop mixing desk in this repository, including the single-page board/traits/mixer desk, radio mode, manual Style Lab, global hero wallpaper, waveform analyser, frameless shell, Rust command surface, localized TFT data and the Web Audio layer mixer. Use when changing the app shell, adding a command, fixing playback scheduling, editing board interactions or adding a locale.
 ---
 
 # Tauri 2 + Vue 3 desk
@@ -13,6 +13,7 @@ bun run dev        # Vite only, http://127.0.0.1:8787
 bun run build      # vue-tsc --noEmit && vite build
 bun run app:dev    # Tauri window (Rust + WebView2)
 bun run app:build  # NSIS bundle
+python tools/build_dataset.py    # regenerate units/rules incl. zh_CN names
 ```
 
 Vite must bind IPv4 (`server.host: '127.0.0.1'`); the default `localhost` binding
@@ -28,13 +29,13 @@ resources listed in `tauri.conf.json`.
 
 ## Single-page structure
 
-`App.vue` has two routes: `desk` and `settings`. `DeskView.vue` owns the one desk
-page:
+`App.vue` mounts `GlobalWallpaper` behind the shell and has two routes: `desk`
+and `settings`. `DeskView.vue` owns the one desk page:
 
 ```
-TransportBar
-desk-grid: ChampionPool | BoardStage | (HeroSpotlight + TraitsPanel)
-MixerPanel
+TransportBar (play/era/mode/loop/radio/plan/status)
+desk-grid: ChampionPool | BoardStage or StyleLab | (HeroSpotlight + TraitsPanel)
+MixerPanel (Waveform + three channels + master)
 ```
 
 All of it shares `src/stores/desk.ts`. Do not split board/traits/mixer back into
@@ -48,6 +49,33 @@ of adding a second trait count; TFT traits count a champion once even when it is
 3-starred. `slots` is a computed sparse array used by `BoardStage.vue`; native
 HTML drag-and-drop moves or swaps entries with `text/plain` payloads
 `shop:<apiName>` and `board:<apiName>`.
+
+**Tauri drag trap:** `tauri.conf.json` must set `app.windows[0].dragDropEnabled`
+to `false`. With the default file-drop handler enabled, WebView2 can swallow
+HTML5 dragstart/drop events on Windows, so the board appears undraggable even
+though it works in Chrome. Keep the native DnD handlers and disable Tauri's file
+drop.
+
+## Radio mode
+
+`startRadio()` snapshots board, selection, era, mix mode and layer settings, then
+clears overrides and enables all layers. It starts a 12 s interval that picks a
+style from a shuffled queue, builds a 6-10 unit board around that style, selects
+a featured champion (which changes the global wallpaper), and may flip the era.
+A 250 ms ticker publishes `radio.progress` for the transport meter.
+`nextStation()` skips; `stopRadio(true)` restores the snapshot. Any manual board
+edit or settings change calls `stopRadio(false)` so the radio cannot fight the
+user.
+
+## Manual Style Lab
+
+`settings.mixMode` is `board` or `manual`. In manual mode `recompute()` passes an
+empty unit list to `assignLayers` and only the per-layer overrides matter, so the
+mix can be composed without champions. `StyleLab.vue` exposes three layer racks,
+all compatible styles per layer, and curated combos from `src/core/combos.ts`
+(the first is Jazz + True Damage). `setMixMode('manual')` fills an incomplete
+override set with that first combo. Clicking a champion in the dimmed pool
+switches back to board mode via `addToBoard`.
 
 ## Rust command surface
 
@@ -69,21 +97,44 @@ The frontend degrades gracefully in a plain browser: `inTauri()` checks
 The desk also opens the resolved stem directory on the Tauri asset-protocol
 scope in `setup`, so a packaged build can decode stems from the resource folder.
 
-## Visual assets
+## Visual assets and wallpaper
 
-`tools/fetch_hero_art.py` downloads the patch 13.24 mobile splash renders from
-CommunityDragon, crops them square and writes 384x384 WebP portraits to
-`src/assets/heroes/<art>.webp` plus `credits.json`. `tools/make_board_art.py`
-renders the stage backdrop and film grain into `src/assets/board/`. Both are
-idempotent and runnable with the bundled Python.
+`tools/fetch_hero_art.py` downloads both patch 13.24 TFT renders:
 
-`src/core/art.ts` maps `unit.art` to the hashed URL with an eager
-`import.meta.glob('../assets/heroes/*.webp', { eager: true, query: '?url', import: 'default' })`.
-`ArtImage.vue` adds a text fallback when a file is missing. Regenerating art
-while Vite is running requires a page reload because the glob is evaluated once.
+```
+src/assets/heroes/banner/<art>.webp      384x192  in-game champion banner
+src/assets/heroes/wallpaper/<art>.webp   384x384  square set splash
+```
 
-For the exact CDragon URLs, naming rules and crop recipe, load the
+The banner is the primary tile in the pool, hex board and spotlight. The square
+splash is **only** the blurred global wallpaper. `src/core/art.ts` has two eager
+globs (`heroBanner`, `heroWallpaper`); `ArtImage.vue` takes a `kind` prop.
+`GlobalWallpaper.vue` crossfades `heroWallpaper(selected.art)` and keeps the
+whole shell translucent with `backdrop-filter`.
+
+`tools/make_board_art.py` renders the stage backdrop and film grain into
+`src/assets/board/`. Both scripts are idempotent and runnable with the bundled
+Python. Regenerating art while Vite is running requires a page reload because
+the globs are evaluated once. For CDragon URLs and crop recipes, load the
 `tft-champion-portraits` skill.
+
+## Waveform analyser
+
+`StemMixer` connects `masterGain -> analyser -> destination` and exposes
+`analyser`. `Waveform.vue` reads `getByteTimeDomainData` and
+`getByteFrequencyData` in a `requestAnimationFrame` loop, draws mirrored
+spectrum bars plus a gradient ribbon, and falls back to a synthetic wave when
+the transport is stopped or a headless browser reports a flat time-domain
+buffer while the spectrum still moves. Keep the canvas DPR-scaled and observe
+resizes; otherwise the waveform is blurry or cropped.
+
+## Shell and sidebar
+
+The title bar is only the drag region, brand mark and window buttons. The
+hamburger and Settings live in the sidebar: Desk at the top, a flexible spacer,
+then the collapse toggle and Settings pinned at the bottom. In the collapsed
+52 px rail labels disappear; at widths under 1180 px an expanded rail floats
+over the desk instead of squeezing the board.
 
 ## Web Audio pitfalls (learned the hard way)
 
@@ -117,7 +168,12 @@ For the exact CDragon URLs, naming rules and crop recipe, load the
   files on every launch. The diagnostics button in Settings runs the same
   `selfTest` on demand.
 
-## Trait mapping pitfall
+## Chinese data and trait mapping
+
+`tools/build_dataset.py` merges `en_us.json` and `zh_cn.json` from the 13.24 TFT
+data and emits `units[].nameZh`, `rules.traitNamesZh` and
+`rules.styleNamesZh`. The JSON stays ASCII via `\u` escapes. Components must use
+`useI18n().championName / traitName / styleName` instead of raw fields.
 
 Champion set data lists traits by display name (`K/DA`, `8-bit`, `Disco`) while
 the Wwise trait api uses suffixes (`Set10_KDA`, `Set10_8Bit`, `Set10_Funk`).
@@ -130,14 +186,19 @@ emits both maps; keep them in sync when regenerating the dataset.
 
 Messages live in `src/i18n/messages.ts`. The Simplified Chinese table is written
 with `\u` escapes so the source tree stays ASCII while the UI renders Chinese.
-`useI18n()` picks the table from `settings.language` and supports `{name}`
-interpolation via `t('key', { count })`. Keep new source strings ASCII; convert
-Chinese literals with a small script before committing.
+`useI18n()` picks the table from `settings.language`, supports `{name}`
+interpolation via `t('key', { count })`, and exposes localized champion, trait
+and style names. Keep new source strings ASCII; convert Chinese literals with a
+small script before committing.
 
 ## Verification
 
 `bun run build` is the fast gate. For UI and playback checks, use the headless
 Chrome CDP recipe in the `browser-cdp-smoke-test` skill: deploy champions, check
-`.trait-row`/`.plan-pill`/`.channel-switch`, press Play, switch era, override a
-layer, then read the diagnostics result. A successful run logs
-`selftest: 3/3 stems decodable` and the transport status becomes `playing`.
+Chinese names in `.pool-name`/`.hex-label`, drag a hex, press Play, start radio
+and wait for the station to rotate, switch to Style Lab and click a combo, then
+read `.channel-switch`. A successful run logs `selftest: 3/3 stems decodable`,
+the transport becomes `playing`, and the waveform canvas has a non-zero size.
+For a packaged check, build with `tauri build --no-bundle`, launch the exe with
+`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, and repeat
+the same CDP assertions against `http://tauri.localhost/`.

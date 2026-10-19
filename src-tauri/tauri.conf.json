@@ -19,6 +19,7 @@
         "minHeight": 720,
         "decorations": false,
         "resizable": true,
+        "dragDropEnabled": false,
         "center": true,
         "theme": "Dark"
       }

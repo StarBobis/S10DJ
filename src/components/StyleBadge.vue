@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { STYLE_LABEL, styleColor, styleGlyph } from '../core/rules';
+import { styleColor, styleGlyph } from '../core/rules';
+import { useI18n } from '../i18n';
 
 const props = withDefaults(
   defineProps<{
@@ -11,9 +12,10 @@ const props = withDefaults(
   { label: false, small: false },
 );
 
+const { styleName } = useI18n();
 const accent = computed(() => styleColor(props.style));
 const glyph = computed(() => styleGlyph(props.style));
-const name = computed(() => STYLE_LABEL[props.style] ?? props.style);
+const name = computed(() => styleName(props.style));
 </script>
 
 <template>

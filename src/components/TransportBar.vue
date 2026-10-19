@@ -2,11 +2,21 @@
 import { computed } from 'vue';
 import { useI18n } from '../i18n';
 import { LAYERS, type Layer } from '../core/types';
-import { STYLE_LABEL, styleColor } from '../core/rules';
-import { play, realign, setEra, setLockLoop, stop, useDesk } from '../stores/desk';
+import { styleColor, styleFrequency } from '../core/rules';
+import {
+  nextStation,
+  play,
+  realign,
+  setEra,
+  setLockLoop,
+  setMixMode,
+  stop,
+  toggleRadio,
+  useDesk,
+} from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, styleName } = useI18n();
 
 const statusLabel = computed(() => {
   if (state.status === 'playing') return t('transport.playing');
@@ -20,10 +30,14 @@ const planPills = computed(() =>
     return {
       layer,
       style,
-      label: STYLE_LABEL[style] ?? style,
+      label: styleName(style),
       color: styleColor(style),
     };
   }),
+);
+
+const radioStation = computed(
+  () => `${styleName(state.radio.station)} ${styleFrequency(state.radio.station)} FM`,
 );
 
 function layerColor(layer: Layer): string {
@@ -32,7 +46,7 @@ function layerColor(layer: Layer): string {
 </script>
 
 <template>
-  <section class="transport-bar">
+  <section class="transport-bar" :class="{ 'radio-live': state.radio.enabled }">
     <div class="transport-actions">
       <button class="primary play" :disabled="state.status !== 'stopped'" @click="play()">
         <span aria-hidden="true">&#9654;</span>
@@ -63,6 +77,24 @@ function layerColor(layer: Layer): string {
       </div>
     </div>
 
+    <div class="mix-mode">
+      <span class="control-label">{{ t('mode.label') }}</span>
+      <div class="segmented">
+        <button
+          :class="{ active: state.settings.mixMode === 'board' }"
+          @click="setMixMode('board')"
+        >
+          {{ t('mode.board') }}
+        </button>
+        <button
+          :class="{ active: state.settings.mixMode === 'manual' }"
+          @click="setMixMode('manual')"
+        >
+          {{ t('mode.manual') }}
+        </button>
+      </div>
+    </div>
+
     <label class="toggle-field">
       <span class="switch">
         <input
@@ -74,6 +106,31 @@ function layerColor(layer: Layer): string {
       </span>
       <span>{{ t('transport.lockLoop') }}</span>
     </label>
+
+    <div class="radio-control" :class="{ live: state.radio.enabled }">
+      <button
+        class="radio-button"
+        :title="state.radio.enabled ? t('radio.stop') : t('radio.start')"
+        @click="toggleRadio()"
+      >
+        <span class="radio-glyph" aria-hidden="true">&#9673;</span>
+        <span class="radio-copy">
+          <b>{{ state.radio.enabled ? t('radio.onAir') : t('radio.start') }}</b>
+          <em>{{ state.radio.enabled ? radioStation : t('radio.auto') }}</em>
+        </span>
+        <span v-if="state.radio.enabled" class="radio-meter">
+          <i :style="{ width: `${Math.round(state.radio.progress * 100)}%` }" />
+        </span>
+      </button>
+      <button
+        v-if="state.radio.enabled"
+        class="ghost icon radio-skip"
+        :title="t('radio.next')"
+        @click="nextStation()"
+      >
+        <span aria-hidden="true">&#9197;</span>
+      </button>
+    </div>
 
     <div class="plan-pills" :aria-label="t('desk.plan')">
       <span

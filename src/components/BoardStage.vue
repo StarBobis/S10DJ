@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import ArtImage from './ArtImage.vue';
 import { useI18n } from '../i18n';
 import { boardStage } from '../core/art';
-import { STYLE_LABEL, styleColor } from '../core/rules';
+import { styleColor } from '../core/rules';
 import { BOARD_COLUMNS, BOARD_ROWS, type BoardUnit, type Unit } from '../core/types';
 import {
   addToBoard,
@@ -27,7 +27,7 @@ interface Cell {
 }
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, championName, styleName } = useI18n();
 
 const stage = boardStage();
 const dragging = ref<number | null>(null);
@@ -56,6 +56,10 @@ function onDragStart(event: DragEvent, cell: Cell) {
   if (!event.dataTransfer || !cell.entry) return;
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', `board:${cell.entry.apiName}`);
+}
+
+function onDragEnd() {
+  dragging.value = null;
 }
 
 function onDrop(event: DragEvent, slot: number) {
@@ -124,16 +128,18 @@ function remove(cell: Cell) {
             <div
               class="hex-fill"
               :draggable="Boolean(cell.entry)"
+              :title="cell.unit ? championName(cell.unit) : undefined"
               @dragstart="onDragStart($event, cell)"
+              @dragend="onDragEnd"
             >
               <template v-if="cell.entry && cell.unit">
-                <ArtImage class="hex-art" :art="cell.unit.art" :alt="cell.unit.name" />
+                <ArtImage class="hex-art" :art="cell.unit.art" :alt="championName(cell.unit)" />
                 <span class="hex-shade" />
                 <span class="hex-cost">{{ cell.unit.cost }}</span>
                 <span class="hex-stars">{{ '\u2605'.repeat(cell.entry.star) }}</span>
                 <span class="hex-label">
-                  <b>{{ cell.unit.name }}</b>
-                  <em>{{ STYLE_LABEL[cell.unit.style] ?? cell.unit.style }}</em>
+                  <b>{{ championName(cell.unit) }}</b>
+                  <em>{{ styleName(cell.unit.style) }}</em>
                 </span>
               </template>
               <span v-else class="hex-plus" aria-hidden="true">+</span>

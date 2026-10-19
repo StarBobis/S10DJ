@@ -70,6 +70,30 @@ export const STYLE_GLYPH: Record<string, string> = {
   truedamage: '\u2620',
 };
 
+/** Fake FM dial positions, purely for the radio mode display. */
+export const STYLE_FREQUENCY: Record<string, string> = {
+  '8bit': '88.3',
+  classical: '89.7',
+  country: '91.1',
+  dj: '92.5',
+  edm: '94.1',
+  emo: '95.9',
+  funk: '97.3',
+  hyperpop: '98.7',
+  illbeats: '100.1',
+  jazz: '101.5',
+  punkrock: '102.9',
+  kda: '103.7',
+  none: '105.1',
+  pentakill: '106.3',
+  popband: '107.1',
+  truedamage: '99.5',
+};
+
+export function styleFrequency(style: string): string {
+  return STYLE_FREQUENCY[style] ?? '99.9';
+}
+
 export const TIER_NAMES = ['bronze', 'silver', 'gold', 'prismatic'];
 
 export function styleColor(style: string): string {

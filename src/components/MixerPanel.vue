@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import StyleBadge from './StyleBadge.vue';
+import Waveform from './Waveform.vue';
 import { useI18n, type MessageKey } from '../i18n';
 import { LAYERS, type Layer } from '../core/types';
-import { STYLE_LABEL, styleColor } from '../core/rules';
+import { styleColor } from '../core/rules';
 import {
   fileFor,
   setLayerVolume,
@@ -14,7 +15,7 @@ import {
 } from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, styleName } = useI18n();
 
 const LAYER_LABEL: Record<Layer, MessageKey> = {
   drums: 'layer.drums',
@@ -28,7 +29,7 @@ const stylesForLayer = computed(() => {
     map[layer] = Object.entries(state.rules?.styles ?? {})
       .filter(([, info]) => info.layers.includes(layer))
       .map(([style]) => style)
-      .sort((a, b) => (STYLE_LABEL[a] ?? a).localeCompare(STYLE_LABEL[b] ?? b));
+      .sort((a, b) => styleName(a).localeCompare(styleName(b)));
   }
   return map;
 });
@@ -39,7 +40,7 @@ const channels = computed(() =>
     return {
       layer,
       style,
-      label: STYLE_LABEL[style] ?? style,
+      label: styleName(style),
       color: styleColor(style),
       weight: state.plan[layer]?.weight ?? 0,
       spotlight: Boolean(state.plan[layer]?.spotlight),
@@ -69,12 +70,13 @@ function onMaster(event: Event) {
     <header class="mixer-head">
       <div class="mixer-title">
         <h2>{{ t('mixer.title') }}</h2>
-        <p class="panel-sub">{{ t('mixer.subtitle') }} - {{ LAYERS.length }} {{ t('mixer.layers') }}</p>
+        <p class="panel-sub">
+          {{ t('mixer.subtitle') }} - {{ LAYERS.length }} {{ t('mixer.layers') }} -
+          {{ t(state.settings.mixMode === 'manual' ? 'mode.manual' : 'mode.board') }}
+        </p>
       </div>
 
-      <div class="eq" :class="state.status" aria-hidden="true">
-        <span v-for="bar in 7" :key="bar" :style="{ animationDelay: `${bar * 0.09}s` }" />
-      </div>
+      <Waveform class="mixer-wave" />
 
       <label class="master-field">
         <span>{{ t('mixer.master') }}</span>
@@ -110,7 +112,9 @@ function onMaster(event: Event) {
 
         <div class="channel-style">
           <StyleBadge :style="channel.style" label />
-          <span class="channel-weight">{{ t('desk.weight') }} {{ channel.weight }}</span>
+          <span class="channel-weight">
+            {{ channel.manual ? t('mixer.manual') : `${t('desk.weight')} ${channel.weight}` }}
+          </span>
         </div>
 
         <div class="channel-body">
@@ -136,7 +140,7 @@ function onMaster(event: Event) {
               >
                 <option value="auto">{{ t('mixer.auto') }}</option>
                 <option v-for="style in stylesForLayer[channel.layer]" :key="style" :value="style">
-                  {{ STYLE_LABEL[style] ?? style }}
+                  {{ styleName(style) }}
                 </option>
               </select>
             </label>

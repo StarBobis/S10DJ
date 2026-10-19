@@ -84,6 +84,24 @@ lets a clicked Play button resume an `AudioContext` in headless mode.
 * **Layout metrics**: `getBoundingClientRect()` plus `getComputedStyle` through
   `evaluate` is faster than eyeballing a screenshot. Check `scrollHeight` against
   `height` to catch clipped scroll panels.
+* **Timers**: a radio/auto-rotate feature needs a real wait longer than its
+  interval. Read the station label, wait 13 s for a 12 s timer, then confirm the
+  label changed. Do not just call the "next" button if you need to prove the
+  timer works.
+* **Canvas**: assert `canvas.width`/`canvas.height` are non-zero, and optionally
+  count non-black pixels with `getImageData` to prove the waveform is drawing.
+  Headless Chrome may report a flat time-domain buffer; a component that falls
+  back to a synthetic wave is still valid.
+
+## Tauri / WebView2
+
+Set `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333` before
+launching the exe or `bun run app:dev`, then use the same `/json` + WebSocket
+driver against port 9333. The page URL is `http://tauri.localhost/` in a packaged
+build. This is the only way to prove that `load_data`, the asset protocol and
+the bundled Vite art work together. For HTML5 drag on Windows, remember that
+Tauri's file-drop handler must be disabled (`dragDropEnabled: false`) or the
+synthetic events may work while a real mouse drag does not.
 
 ## Pitfalls
 

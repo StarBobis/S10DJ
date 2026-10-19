@@ -12,6 +12,8 @@ export const MAX_STARS = 3;
 export interface Unit {
   apiName: string;
   name: string;
+  /** Simplified Chinese label from Riot's zh_CN set data. */
+  nameZh?: string;
   cost: number;
   traits: string[];
   musicTraits: string[];
@@ -36,6 +38,8 @@ export interface RulesFile {
   traitToStyle: Record<string, string>;
   /** Display-name trait -> style, the view champion data actually uses. */
   traitDisplayStyle: Record<string, string>;
+  traitNamesZh: Record<string, string>;
+  styleNamesZh: Record<string, string>;
   traitThresholds: Record<string, number[]>;
   stems: Record<string, Partial<Record<Layer, Partial<Record<Era, string>>>>>;
   priority: string[];
@@ -71,6 +75,8 @@ export interface Settings {
   lockLoop: boolean;
   master: number;
   sidebarCollapsed: boolean;
+  /** Board weights drive the mix, or the manual layer overrides do. */
+  mixMode: 'board' | 'manual';
   layers: Record<Layer, LayerSetting>;
 }
 
@@ -88,6 +94,7 @@ export function defaultSettings(): Settings {
     lockLoop: true,
     master: 0.9,
     sidebarCollapsed: true,
+    mixMode: 'board',
     layers: {
       drums: { enabled: true, volume: 1, override: null },
       chords: { enabled: true, volume: 1, override: null },

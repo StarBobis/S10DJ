@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n, type MessageKey } from '../i18n';
-import { STYLE_LABEL, styleColor, styleGlyph } from '../core/rules';
+import { styleColor, styleGlyph } from '../core/rules';
 import { LAYERS, type Layer } from '../core/types';
 import { boardCount, musicTraitRows, otherTraitRows, useDesk } from '../stores/desk';
 
 const state = useDesk();
-const { t } = useI18n();
+const { t, traitName, styleName, championName } = useI18n();
 
 const LAYER_LABEL: Record<Layer, MessageKey> = {
   drums: 'layer.drums',
@@ -28,12 +28,15 @@ const plan = computed(() =>
     return {
       layer,
       style,
-      label: STYLE_LABEL[style] ?? style,
+      label: styleName(style),
       color: styleColor(style),
       weight: state.plan[layer]?.weight ?? 0,
     };
   }),
 );
+
+const manualMode = computed(() => state.settings.mixMode === 'manual');
+const badgeCount = computed(() => (manualMode.value ? LAYERS.length : boardCount.value));
 
 function tierLabel(tier: number): string {
   return t(TIER_LABEL[Math.min(Math.max(tier, 0), TIER_LABEL.length - 1)]);
@@ -47,7 +50,7 @@ function tierLabel(tier: number): string {
         <h2>{{ t('desk.traits') }}</h2>
         <p class="panel-sub">{{ t('desk.traitsHint') }}</p>
       </div>
-      <span class="traits-count">{{ boardCount }}</span>
+      <span class="traits-count">{{ badgeCount }}</span>
     </header>
 
     <div class="plan-mini">
@@ -71,11 +74,11 @@ function tierLabel(tier: number): string {
         :key="row.trait"
         class="trait-row"
         :style="{ '--trait': row.color }"
-        :title="row.units.join(', ')"
+        :title="row.units.map((unit) => championName(unit)).join(', ')"
       >
         <div class="trait-head">
           <span class="trait-emblem" aria-hidden="true">{{ styleGlyph(row.style ?? 'none') }}</span>
-          <span class="trait-name">{{ row.trait }}</span>
+          <span class="trait-name">{{ traitName(row.trait) }}</span>
           <span class="trait-tier" :class="`tier-${row.tier}`">{{ tierLabel(row.tier) }}</span>
           <span class="trait-count">
             {{ row.count }}<template v-if="row.next">/{{ row.next }}</template>
@@ -85,19 +88,19 @@ function tierLabel(tier: number): string {
           <span :style="{ width: `${Math.round(row.ratio * 100)}%` }" />
         </div>
         <div class="trait-sub">
-          <span>{{ STYLE_LABEL[row.style ?? 'none'] }}</span>
+          <span>{{ styleName(row.style ?? 'none') }}</span>
           <span v-if="row.next">{{ t('desk.next', { count: (row.next ?? 0) - row.count }) }}</span>
           <span v-else>{{ t('desk.weight') }} {{ state.weights[row.style ?? 'none'] ?? 0 }}</span>
         </div>
       </article>
     </div>
-    <p v-else class="hint">{{ t('desk.noTraits') }}</p>
+    <p v-else class="hint">{{ manualMode ? t('lab.noChampions') : t('desk.noTraits') }}</p>
 
     <template v-if="otherTraitRows.length">
       <h3>{{ t('desk.otherTraits') }}</h3>
       <div class="other-traits">
         <span v-for="row in otherTraitRows" :key="row.trait" class="other-trait">
-          <i>{{ row.count }}</i>{{ row.trait }}
+          <i>{{ row.count }}</i>{{ traitName(row.trait) }}
         </span>
       </div>
     </template>

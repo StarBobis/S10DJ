@@ -1,11 +1,11 @@
 ---
 name: tft-champion-portraits
-description: Fetch Teamfight Tactics champion set splash art from CommunityDragon, map Riot api names to the file names, and convert the 512x512 mobile renders into small WebP portraits for a desktop app. Use when a TFT set needs champion avatars, board portraits or hero card backdrops.
+description: Fetch Teamfight Tactics champion set art from CommunityDragon, map Riot api names to the banner and splash file names, and convert them into small WebP UI banners and wallpaper images. Use when a TFT set needs champion tiles, board portraits, radio/show cards or a hero wallpaper.
 ---
 
 # TFT champion portraits
 
-## Where the art lives
+## Two different assets
 
 CommunityDragon keeps TFT set art under the game assets of a patch:
 
@@ -13,15 +13,16 @@ CommunityDragon keeps TFT set art under the game assets of a patch:
 https://raw.communitydragon.org/<patch>/game/assets/ux/tft/championsplashes/
 ```
 
-For set 10 / patch 13.24 the useful files are:
+For set 10 / patch 13.24 the files that matter are:
 
 ```
-tft10_<art>.tft_set10.png        256x128 loading banner
-tft10_<art>_mobile.tft_set10.png 512x512 square splash
+tft10_<art>.tft_set10.png          256x128 in-game champion banner
+tft10_<art>_mobile.tft_set10.png   512x512 square set splash
 ```
 
-Only the `_mobile` render is square, so use it for both the avatar and the
-blurred backdrop. The smaller banner is a useful header strip, not a portrait.
+The **banner** is the portrait Riot itself uses in the TFT UI (pool / board /
+champion cards). Use that for hero tiles, not the square splash. The splash is
+only a wallpaper: blur it behind the app and never treat it as the avatar.
 
 `<art>` is the champion api name after the set prefix, lowercased:
 
@@ -47,9 +48,9 @@ the list:
 python -c "import urllib.request; print(urllib.request.urlopen('https://raw.communitydragon.org/13.24/game/assets/ux/tft/championsplashes/').read().decode()[:2000])"
 ```
 
-The index is a static Apache listing; grep for `tft10_` and `_mobile`. A missing
-champion returns 404, so a download script should fall back to the non-mobile
-render and finally to the Data Dragon square:
+The index is a static Apache listing; grep for `tft10_` and `_mobile`. Missing
+champions return 404, so fall back to a 2:1 centre crop of the square splash and
+finally to the Data Dragon square:
 
 ```
 https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/<Key>.png
@@ -61,20 +62,29 @@ resort.
 
 ## Conversion recipe
 
-Use Pillow. Crop the centre square first (the mobile files already are square),
-resize to 384x384 with LANCZOS, then save WebP quality 84, method 6:
+Use Pillow. Keep the two outputs separate:
+
+```
+src/assets/heroes/banner/<art>.webp      384x192  (2:1, from the 256x128 banner)
+src/assets/heroes/wallpaper/<art>.webp   384x384  (centre-cropped square splash)
+```
 
 ```python
-image = Image.open(path).convert("RGB")
+# banner
+image = Image.open(banner).convert("RGB")
+image = centre_crop_to_ratio(image, 2 / 1)
+image.resize((384, 192), Image.LANCZOS).save(out, "WEBP", quality=86, method=6)
+
+# wallpaper
+image = Image.open(splash).convert("RGB")
 side = min(image.size)
-left = (image.width - side) // 2
-top = (image.height - side) // 2
-image = image.crop((left, top, left + side, top + side))
+image = image.crop(((image.width - side) // 2, (image.height - side) // 2,
+                    (image.width + side) // 2, (image.height + side) // 2))
 image.resize((384, 384), Image.LANCZOS).save(out, "WEBP", quality=84, method=6)
 ```
 
-Result for set 10: 60 portraits, about 1.1 MB total, 15-30 KB each. That is
-small enough to commit, so the app does not need the network at runtime.
+Result for set 10: 60 banners (~0.6 MB) plus 60 wallpapers (~1.1 MB). Small
+enough to commit, so the app never needs the network at runtime.
 
 ## Data and UI wiring
 
@@ -83,30 +93,31 @@ the frontend; the generator (`tools/build_dataset.py`) writes it and skips
 summons such as `TFT10_DiscoBall` and `TFT10_YorickGhoulMelee` (they reuse a
 champion portrait but are not buyable units).
 
-For Vite, import the folder eagerly so the URLs are fingerprinted into the
+For Vite, import both folders eagerly so the URLs are fingerprinted into the
 bundle:
 
 ```ts
-const modules = import.meta.glob('../assets/heroes/*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
+const banners = import.meta.glob('../assets/heroes/banner/*.webp', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>;
+const wallpapers = import.meta.glob('../assets/heroes/wallpaper/*.webp', {
+  eager: true, query: '?url', import: 'default',
 }) as Record<string, string>;
 ```
 
-Keep a `credits.json` next to the images containing patch, unit name, art key
-and the exact source URL. It documents provenance and makes a refresh auditable.
+Keep a `credits.json` next to the images containing patch, unit name, art key,
+and both source URLs. It documents provenance and makes a refresh auditable.
 
 ## Pitfalls
 
 * `raw.communitydragon.org/latest/...` drops old sets. Pin the patch that
   actually shipped the set (`13.24` for set 10); the current client only has the
   newest set under `latest`.
-* The non-mobile splash is 256x128. Cropping it to a square loses most of the
-  art; only use it if the mobile file is absent.
+* The banner is only 256x128. Display it around 120-200 px wide (2x for HiDPI)
+  and centre-crop it for square hexes; do not upscale it into a 4K wallpaper.
 * Akali has two skins in set 10. Keep `akali` and `akali_truedamage` as separate
   art keys and units.
 * Do not hotlink the CDN from the app. The desk is offline-first and the CDN
   removes old patches; download and bundle instead.
-* Regenerating portraits while Vite is running requires a page reload because
+* Regenerating art while Vite is running requires a page reload because
   `import.meta.glob` is evaluated once.

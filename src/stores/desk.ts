@@ -20,6 +20,7 @@ import {
   tierProgress,
   traitCounts,
 } from '../core/rules';
+import { STYLE_COMBOS } from '../core/combos';
 import { heroArtCount } from '../core/art';
 import {
   BOARD_COLUMNS,
@@ -40,6 +41,17 @@ import {
 
 export type NoticeCode = 'boardFull' | 'maxStars' | 'notPlaying' | '';
 
+const RADIO_INTERVAL = 12000;
+
+interface RadioState {
+  enabled: boolean;
+  station: string;
+  beat: number;
+  progress: number;
+  nextAt: number;
+  queue: string[];
+}
+
 const state = reactive({
   ready: false,
   error: '' as string,
@@ -58,6 +70,14 @@ const state = reactive({
   selected: null as string | null,
   preview: null as string | null,
   testing: null as { running: boolean; ok: string[]; failed: string[] } | null,
+  radio: {
+    enabled: false,
+    station: 'none',
+    beat: 0,
+    progress: 0,
+    nextAt: 0,
+    queue: [],
+  } as RadioState,
 });
 
 const mixer = new StemMixer({
@@ -70,6 +90,18 @@ const mixer = new StemMixer({
 let noticeTimer: ReturnType<typeof setTimeout> | null = null;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let applyTimer: ReturnType<typeof setTimeout> | null = null;
+let radioTimer: ReturnType<typeof setInterval> | null = null;
+let radioTicker: ReturnType<typeof setInterval> | null = null;
+
+interface RadioBackup {
+  board: BoardUnit[];
+  selected: string | null;
+  era: Era;
+  mixMode: Settings['mixMode'];
+  layers: Settings['layers'];
+}
+
+let radioBackup: RadioBackup | null = null;
 
 function notify(code: NoticeCode) {
   state.notice = code;
@@ -197,15 +229,21 @@ export function traitRow(trait: string) {
     ratio: progress.ratio,
     style: traitStyles()[trait] ?? null,
     color: styleColor(traitStyles()[trait] ?? 'none'),
-    units: boardUnits.value.filter((unit) => unit.traits.includes(trait)).map((unit) => unit.name),
+    units: boardUnits.value.filter((unit) => unit.traits.includes(trait)),
   };
 }
 
 function recompute() {
   if (!state.rules) return;
-  const units = boardUnits.value;
-  state.traits = traitCounts(units);
-  state.tiers = activeTiers(state.traits, state.rules.traitThresholds ?? {});
+  const manual = state.settings.mixMode === 'manual';
+  const units = manual ? [] : boardUnits.value;
+  if (manual) {
+    state.traits = {};
+    state.tiers = {};
+  } else {
+    state.traits = traitCounts(units);
+    state.tiers = activeTiers(state.traits, state.rules.traitThresholds ?? {});
+  }
   const overrides: Partial<Record<Layer, string | null>> = {};
   for (const layer of LAYERS) overrides[layer] = state.settings.layers[layer].override;
   const { plan, weights } = assignLayers(units, {
@@ -240,6 +278,10 @@ function isFree(slot: number): boolean {
 export function addToBoard(apiName: string, slot?: number): void {
   const unit = unitByApi(apiName);
   if (!unit) return;
+  stopRadio(false);
+  if (state.settings.mixMode === 'manual') {
+    setMixMode('board');
+  }
   const existing = state.board.find((entry) => entry.apiName === apiName);
   if (existing) {
     if (existing.star >= MAX_STARS) {
@@ -265,6 +307,7 @@ export function addToBoard(apiName: string, slot?: number): void {
 }
 
 export function removeFromBoard(apiName: string): void {
+  stopRadio(false);
   state.board = state.board.filter((entry) => entry.apiName !== apiName);
   if (state.selected === apiName) state.selected = null;
   if (state.preview === apiName) state.preview = null;
@@ -272,6 +315,7 @@ export function removeFromBoard(apiName: string): void {
 
 export function moveBoardUnit(apiName: string, slot: number): void {
   if (slot < 0 || slot >= BOARD_SLOTS) return;
+  stopRadio(false);
   const mover = state.board.find((entry) => entry.apiName === apiName);
   if (!mover || mover.slot === slot) return;
   const occupant = state.board.find((entry) => entry.slot === slot);
@@ -280,6 +324,7 @@ export function moveBoardUnit(apiName: string, slot: number): void {
 }
 
 export function upgradeBoardUnit(apiName: string): void {
+  stopRadio(false);
   const entry = state.board.find((item) => item.apiName === apiName);
   if (!entry) return;
   if (entry.star >= MAX_STARS) {
@@ -290,6 +335,7 @@ export function upgradeBoardUnit(apiName: string): void {
 }
 
 export function clearBoard(): void {
+  stopRadio(false);
   state.board = [];
   state.selected = null;
   state.preview = null;
@@ -303,9 +349,170 @@ export function previewUnit(apiName: string | null): void {
   state.preview = apiName;
 }
 
+/* ---------- manual style mixing ---------- */
+
+export function setMixMode(mode: Settings['mixMode']): void {
+  if (state.settings.mixMode === mode) return;
+  if (state.radio.enabled) stopRadio(false);
+  state.settings.mixMode = mode;
+  if (mode === 'board') {
+    for (const layer of LAYERS) state.settings.layers[layer].override = null;
+  }
+  if (mode === 'manual') {
+    for (const layer of LAYERS) state.settings.layers[layer].enabled = true;
+    const complete = LAYERS.every((layer) => Boolean(state.settings.layers[layer].override));
+    if (!complete) {
+      const combo = STYLE_COMBOS[0];
+      for (const layer of LAYERS) state.settings.layers[layer].override = combo.layers[layer];
+    }
+  }
+  recompute();
+  persist();
+}
+
+export function applyCombo(id: string): void {
+  const combo = STYLE_COMBOS.find((item) => item.id === id);
+  if (!combo) return;
+  if (state.radio.enabled) stopRadio(false);
+  state.settings.mixMode = 'manual';
+  for (const layer of LAYERS) {
+    state.settings.layers[layer].enabled = true;
+    state.settings.layers[layer].override = combo.layers[layer];
+  }
+  recompute();
+  persist();
+}
+
+export function clearManualStyles(): void {
+  for (const layer of LAYERS) state.settings.layers[layer].override = null;
+  recompute();
+  persist();
+}
+
+/* ---------- radio ---------- */
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swap]] = [copy[swap], copy[index]];
+  }
+  return copy;
+}
+
+function radioStyles(): string[] {
+  return Object.keys(state.rules?.styles ?? {}).filter((style) => style !== 'none');
+}
+
+function nextRadioStyle(): string {
+  if (!state.radio.queue.length) state.radio.queue = shuffle(radioStyles());
+  return state.radio.queue.shift() ?? 'none';
+}
+
+function radioBoard(style: string): BoardUnit[] {
+  const themed = shuffle(state.units.filter((unit) => unit.style === style));
+  const rest = shuffle(state.units.filter((unit) => unit.style !== style));
+  const count = Math.min(MAX_BOARD_UNITS, 6 + Math.floor(Math.random() * 5));
+  const themedCount = Math.min(themed.length, Math.max(1, Math.ceil(count / 2)));
+  const picks = themed.slice(0, themedCount);
+  for (const unit of rest) {
+    if (picks.length >= count) break;
+    if (!picks.some((pick) => pick.apiName === unit.apiName)) picks.push(unit);
+  }
+  const slots = shuffle(SLOT_ORDER).slice(0, picks.length);
+  return picks.map((unit, index) => ({
+    apiName: unit.apiName,
+    star: Math.random() < 0.08 ? 3 : Math.random() < 0.3 ? 2 : 1,
+    slot: slots[index],
+  }));
+}
+
+function updateRadioProgress() {
+  if (!state.radio.enabled) return;
+  const remaining = Math.max(0, state.radio.nextAt - Date.now());
+  state.radio.progress = Math.min(1, Math.max(0, 1 - remaining / RADIO_INTERVAL));
+}
+
+function radioBeat(): void {
+  const style = nextRadioStyle();
+  state.radio.station = style;
+  state.radio.beat += 1;
+  if (Math.random() < 0.28) {
+    state.settings.era = state.settings.era === 'late' ? 'early' : 'late';
+  }
+  const board = radioBoard(style);
+  state.board = board;
+  const featured =
+    board.find((entry) => unitByApi(entry.apiName)?.style === style) ?? board[0] ?? null;
+  state.selected = featured?.apiName ?? null;
+  state.preview = null;
+  state.radio.nextAt = Date.now() + RADIO_INTERVAL;
+  state.radio.progress = 0;
+  recompute();
+}
+
+export function startRadio(): void {
+  if (state.radio.enabled) return;
+  radioBackup = {
+    board: state.board.map((entry) => ({ ...entry })),
+    selected: state.selected,
+    era: state.settings.era,
+    mixMode: state.settings.mixMode,
+    layers: JSON.parse(JSON.stringify(state.settings.layers)) as Settings['layers'],
+  };
+  state.radio.enabled = true;
+  state.radio.beat = 0;
+  state.radio.queue = shuffle(radioStyles());
+  state.settings.mixMode = 'board';
+  for (const layer of LAYERS) {
+    state.settings.layers[layer].enabled = true;
+    state.settings.layers[layer].override = null;
+  }
+  radioBeat();
+  radioTimer = setInterval(radioBeat, RADIO_INTERVAL);
+  radioTicker = setInterval(updateRadioProgress, 250);
+  if (state.status === 'stopped') void play();
+}
+
+export function stopRadio(restore = true): void {
+  if (!state.radio.enabled && !radioBackup) return;
+  state.radio.enabled = false;
+  state.radio.progress = 0;
+  state.radio.nextAt = 0;
+  state.radio.station = 'none';
+  if (radioTimer) {
+    clearInterval(radioTimer);
+    radioTimer = null;
+  }
+  if (radioTicker) {
+    clearInterval(radioTicker);
+    radioTicker = null;
+  }
+  if (restore && radioBackup) {
+    state.board = radioBackup.board;
+    state.selected = radioBackup.selected;
+    state.settings.era = radioBackup.era;
+    state.settings.mixMode = radioBackup.mixMode;
+    state.settings.layers = radioBackup.layers;
+    recompute();
+  }
+  radioBackup = null;
+}
+
+export function toggleRadio(): void {
+  if (state.radio.enabled) stopRadio(true);
+  else startRadio();
+}
+
+export function nextStation(): void {
+  if (!state.radio.enabled) return;
+  radioBeat();
+}
+
 /* ---------- settings and transport ---------- */
 
 export function setOverride(layer: Layer, style: string | null): void {
+  stopRadio(false);
   state.settings.layers[layer].override = style;
   recompute();
   persist();
@@ -322,6 +529,7 @@ export function setLayerVolume(layer: Layer, volume: number): void {
 }
 
 export function setEra(era: Era): void {
+  stopRadio(false);
   state.settings.era = era;
   persist();
 }
@@ -401,6 +609,11 @@ export async function runStemTest(): Promise<void> {
 
 export function useDesk() {
   return state;
+}
+
+/** Analyser attached to the master bus, used by the waveform display. */
+export function mixerAnalyser(): AnalyserNode | null {
+  return mixer.analyser;
 }
 
 export function requiredStems(rules: RulesFile): string[] {
