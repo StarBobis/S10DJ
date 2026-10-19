@@ -1,119 +1,101 @@
-# Set 10 Mixing Desk
+# Set 10 混音台
 
-A desktop recreation of the Teamfight Tactics **Set 10 (Remix Rumble / patch
-13.24)** adaptive soundtrack, built as a Tauri 2 + Vue 3 app. Place champions on
-the board and the app selects the drums, chords and top layers the same way the
-game does - or ignore champions entirely and compose the mix by hand.
+**简体中文** | [English](README.en.md)
 
-![The desk](assets/screenshots/desk.webp)
+一个把《云顶之弈》**S10 强音争霸（Remix Rumble）/ 13.24 补丁**的自适应配乐系统搬到桌面的项目，使用 Tauri 2 + Vue 3 构建。把英雄放上棋盘，程序会像游戏一样选择鼓组、和弦与旋律三层；也可以完全不管英雄，直接手动编排整段混音。
 
-## What it does
+最新发布：[v0.2.0](https://github.com/StarBobis/S10DJ/releases/tag/v0.2.0)
 
-- **One desk page**: champion pool, 4x7 hex board, hero spotlight, traits and the
-  three-channel mixing desk are visible together.
-- **Radio**: builds a themed board, starts playback and holds the station for a
-  full 2:45 track before rotating styles and eras. Skip with one button.
-- **Style Lab**: no champions required. Generates all **458 usable 1-3 style
-  combinations**, with per-style and per-combo likes that reorder the
-  recommendations. Jhin combinations start at the top.
-- **Headliner**: mark a unit as Headliner and give one of its traits +1, matching
-  the set mechanic that pushes breakpoints.
-- **Lineup files**: export and import the board, stars, Headliner, era, mix mode
-  and layer settings as JSON.
-- **Localized**: English and Simplified Chinese champion, trait and style names,
-  read from Riot's `zh_CN` set data.
-- **Live visuals**: the selected champion becomes the blurred global wallpaper,
-  panels stay translucent over it, and the mixer header carries a real-time
-  waveform/spectrum analyser.
-- **Set 10 art**: 60 in-game TFT champion banners for the UI and 60 square set
-  splashes used only for the wallpaper.
+![混音台](assets/screenshots/desk.webp)
 
-![Style Lab](assets/screenshots/style-lab.webp)
+## 功能
 
-## How the game's mix works
+- **单页工作台**：英雄池、4x7 六边形棋盘、英雄 Spotlight、羁绊和三通道混音台同屏显示。
+- **电台模式**：自动生成主题阵容并开始播放，完整播放 **2:45** 后才切换流派和时期；可一键跳到下一台。
+- **流派工坊**：不需要上阵英雄，生成全部 **458 种可用 1-3 流派组合**；支持给单个流派和组合点赞，点赞会改变推荐排序，烬（戏命师）组合默认置顶。
+- **天选**：把某个英雄设为天选，使其一个羁绊 +1，对应游戏里推动羁绊层级的天选机制。
+- **阵容文件**：把棋盘、星级、天选、时期、混音模式和三层设置导出/导入为 JSON。
+- **中文本地化**：英雄、羁绊、流派名支持英文和简体中文，中文名来自 Riot 的 `zh_CN` 赛季数据。
+- **实时视觉**：选中的英雄会成为全局模糊壁纸，面板保持半透明；混音台顶部有实时波形/频谱分析。
+- **S10 美术**：60 张云顶英雄 Banner 用于界面，60 张方形赛季原画只用于全局壁纸。
 
-The soundtrack is three layers, each selected by its own Wwise switch:
+![流派工坊](assets/screenshots/style-lab.webp)
+
+## 游戏混音机制
+
+配乐由三层组成，每层由自己的 Wwise 开关选择：
 
 ```
 Set_Switch_set10_<style>_<layer>      layer in { drums, chords, top }
 ```
 
-The 13.24 `Map22.wad.client` switch table contains **33 names**. `none` is the
-base track for a layer no style occupies.
+13.24 的 `Map22.wad.client` 开关表里共有 **33 个开关名**。当某层没有任何流派占用时，使用 `none` 基础音轨。
 
-| style id | trait | layers |
+| 流派 id | 羁绊 | 提供的层 |
 | --- | --- | --- |
-| `8bit` | 8-bit | drums, chords |
-| `classical` | Maestro (Jhin) | top |
-| `country` | Country | drums, chords |
-| `dj` | Mixmaster (Sona) | drums |
-| `edm` | EDM | drums, chords |
-| `emo` | Emo | drums, chords |
-| `funk` | Disco | drums, chords |
-| `hyperpop` | Hyperpop | top |
-| `illbeats` | ILLBEATS | drums, top |
-| `jazz` | Jazz | top |
-| `kda` | K/DA | drums, chords, top |
-| `none` | base | drums, chords, top |
-| `pentakill` | Pentakill | drums, chords, top |
-| `popband` | Heartsteel | drums, chords, top |
-| `punkrock` | Punk | drums, chords |
-| `truedamage` | True Damage | drums, chords, top |
+| `8bit` | 8 比特 | 鼓组、和弦 |
+| `classical` | 戏命师（烬） | 旋律 |
+| `country` | 乡村音乐 | 鼓组、和弦 |
+| `dj` | DJ 娑娜 | 鼓组 |
+| `edm` | 电子舞曲 | 鼓组、和弦 |
+| `emo` | EMO | 鼓组、和弦 |
+| `funk` | 迪斯科 | 鼓组、和弦 |
+| `hyperpop` | 高能流行 | 旋律 |
+| `illbeats` | 大触打击乐 | 鼓组、旋律 |
+| `jazz` | 爵士乐 | 旋律 |
+| `kda` | K/DA | 鼓组、和弦、旋律 |
+| `none` | 基础 | 鼓组、和弦、旋律 |
+| `pentakill` | 五杀摇滚 | 鼓组、和弦、旋律 |
+| `popband` | 心之钢 | 鼓组、和弦、旋律 |
+| `punkrock` | 朋克 | 鼓组、和弦 |
+| `truedamage` | 真实伤害 | 鼓组、和弦、旋律 |
 
-Riot's design interview confirms that the mix follows **unit counts**, that the
-breakpoint tier raises a style's share, and that a solo act such as Maestro (Jhin)
-always takes one layer. The desk implements:
+Riot 的设计访谈确认：混音由**弈子数量**驱动；羁绊层级会提高该流派的占比；像戏命师（烬）这样的单体羁绊总会占住一层。本项目的实现是：
 
 ```
 weight(style) = units(style) + tierIndex(style breakpoints, count)
 
-for each layer:
-  take the heaviest style that provides the layer
-  equal weight -> higher breakpoint tier, then the data priority order
-  no style -> none
+对每一层：
+  选择能提供该层、权重最高的流派
+  权重相同 -> 羁绊层级更高者优先，再按数据优先级
+  没有可用流派 -> none
 
-solo acts (classical, dj, illbeats) hold a layer before the normal winners
-Headliner: +1 to the chosen trait before tiers are calculated
+单体羁绊（classical、dj、illbeats）在普通胜者之前占一层
+天选：在计算层级前给指定羁绊 +1
 ```
 
-The exact arithmetic and tie-break are an **evidence-backed reconstruction**, not
-a byte-perfect copy of the native client. The confirmed and unmodelled parts are
-listed in the app under **Settings -> Music rule audit**:
+精确的权重算术和平局规则是**有证据支持的重建**，不是对游戏原生客户端的逐字节复制。已确认和未建模的部分都列在 **设置 -> 混音规则审计** 里：
 
-![Rule audit](assets/screenshots/rules-audit.webp)
+![规则审计](assets/screenshots/rules-audit.webp)
 
-Not modelled: emblems/augments/portals that add traits or champions, Wwise phase
-music and stingers, and the client's exact internal tie-break.
+未建模：会增加羁绊或英雄的纹章、强化符文、传送门；Wwise 阶段音乐和转场音效；客户端内部精确的平局规则。
 
-## Quick start
+## 快速开始
 
-### Requirements
+### 环境要求
 
-- Windows 10/11 with the WebView2 runtime (Tauri desktop build)
-- [Bun](https://bun.sh/) for the frontend
-- Rust stable for `tauri dev` / `tauri build`
-- Python 3.14 with Pillow and NumPy only if you want to regenerate art/data
+- Windows 10/11，带 WebView2 运行时（Tauri 桌面版）
+- [Bun](https://bun.sh/)，用于前端
+- Rust 稳定版，用于 `tauri dev` / `tauri build`
+- 只有重新生成美术/数据时才需要 Python 3.14 + Pillow + NumPy
 
-### Run
+### 运行
 
 ```powershell
 bun install
-bun run dev        # browser dev server: http://127.0.0.1:8787
-bun run app:dev    # Tauri window (frameless, custom title bar)
-bun run build      # vue-tsc --noEmit + production bundle
-bun run app:build  # NSIS installer
+bun run dev        # 浏览器开发服务器：http://127.0.0.1:8787
+bun run app:dev    # Tauri 窗口（无边框、自定义标题栏）
+bun run build      # vue-tsc --noEmit + 生产构建
+bun run app:build  # NSIS 安装包
 ```
 
-The browser mode is useful for UI work. Tauri adds the native window, the asset
-protocol and the Rust data/settings commands.
+浏览器模式适合调 UI。Tauri 模式额外提供原生窗口、asset 协议以及 Rust 的数据/设置命令。
 
-### Audio stems
+### 音频分轨
 
-The repository deliberately excludes the extracted audio (`assets/audio_ogg`
-and `assets/audio` are git-ignored; the game audio is not redistributable).
-Without stems the desk still runs, but playback reports missing files.
+源码仓库刻意不包含提取后的音频（`assets/audio_ogg` 和 `assets/audio` 都在 git 忽略列表中）。没有分轨时界面仍能运行，但播放会提示文件缺失。
 
-Put the converted stems in `assets/audio_ogg`:
+把转换好的分轨放到 `assets/audio_ogg`：
 
 ```
 assets/audio_ogg/
@@ -123,38 +105,30 @@ assets/audio_ogg/
   durations.json
 ```
 
-`tools/convert_stems.py` converts the AAC rips in `assets/audio` into the OGG
-files, and `tools/build_dataset.py` rebuilds the JSON data. The **Settings ->
-Audio diagnostics** card shows the resolved folder, the number of stems found,
-missing requirements and a 3-stem decode test.
+`tools/convert_stems.py` 会把 `assets/audio` 里的 AAC 提取音频转成 OGG，`tools/build_dataset.py` 负责重建 JSON 数据。**设置 -> 音频诊断** 会显示解析到的目录、找到的分轨数量、缺失项，并做一次 3 条分轨的解码测试。
 
-### Hero art and stage
+### 英雄原画与舞台
 
-The 120 hero images and the stage backdrop are committed, so a fresh clone has
-the full UI immediately. Regenerate them with:
+120 张英雄图片和舞台背景已经提交到仓库，所以新克隆下来就能看到完整界面。需要重新生成时：
 
 ```powershell
 python tools/fetch_hero_art.py     # banner/ + wallpaper/ + credits.json
 python tools/make_board_art.py     # stage.webp + grain.png
 ```
 
-Both scripts are idempotent; `--force` on the first re-downloads every portrait.
-Restart Vite after regenerating art because `import.meta.glob` is evaluated once.
+两个脚本都是幂等的；第一个脚本加 `--force` 会重新下载全部原画。重新生成美术后要重启 Vite，因为 `import.meta.glob` 只会求值一次。
 
-## Using the desk
+## 使用混音台
 
-1. Pick a champion in the pool, or switch the pool to **Trait** grouping.
-2. Left-click to deploy, right-click to remove, drag a hex to move or swap,
-   double-click to star up.
-3. Select a unit to open its spotlight: upgrade, remove, or set a Headliner.
-4. Press **Play**, then mix live with the layer switches, faders and overrides.
-5. Switch **Mode** to **Style Lab** to compose without champions; the layer racks,
-   filters and hearts are all there.
-6. Use the two arrows in the transport to export/import a lineup JSON.
-7. **Radio** auto-builds boards; `Next station` skips, stopping restores your
-   previous board and settings.
+1. 在英雄池里选英雄，或把英雄池切换到 **羁绊** 分组。
+2. 左键上阵，右键移除，拖动六边形移动/交换，双击升星。
+3. 选中英雄打开 Spotlight：升星、移除，或设为天选。
+4. 按 **播放**，然后实时切换层开关、推音量、手动指定流派。
+5. 把 **模式** 切到 **流派**（Style Lab），不上英雄也能编排；层机架、筛选和点赞都在那里。
+6. 用顶栏的两个箭头导出/导入阵容 JSON。
+7. **电台** 会自动生成阵容；`下一台` 立即切换，停止后会恢复你之前的棋盘和设置。
 
-Lineup files are portable JSON:
+阵容文件是可移植的 JSON：
 
 ```json
 {
@@ -175,15 +149,15 @@ Lineup files are portable JSON:
 }
 ```
 
-## Architecture
+## 架构
 
 ```
 Vue 3 + TypeScript (Vite)
   ChampionPool / BoardStage / StyleLab / HeroSpotlight / TraitsPanel
   MixerPanel / Waveform / TransportBar / GlobalWallpaper
         |
-  src/stores/desk.ts  (board, plan, radio, lineup, transport)
-  src/stores/likes.ts (persisted combo/style ranking)
+  src/stores/desk.ts  (棋盘、方案、电台、阵容、传输控制)
+  src/stores/likes.ts (持久化的流派/组合排序)
         |
   src/core/  data.ts  rules.ts  combos.ts  audio.ts  art.ts
         |
@@ -192,56 +166,51 @@ Vue 3 + TypeScript (Vite)
     save_settings, log_event
 ```
 
-Key implementation notes:
+关键实现说明：
 
-- `src/core/rules.ts` computes style weights, solo-act spotlighting and the
-  three-layer plan.
-- `src/core/combos.ts` generates every usable 1-3 style group with a perfect
-  style-to-distinct-layer matching, so every style in a combo contributes.
-- `src/core/audio.ts` uses one Web Audio voice per stem file, ramps gains, keeps
-  a shared loop region and exposes the master analyser.
-- `src/stores/desk.ts` owns board editing, manual mode, the 165 s radio cycle and
-  lineup import/export.
-- Packaged builds read `data/` and `assets/audio_ogg/` through Rust commands and
-  the Tauri asset protocol; the hero art is bundled by Vite.
+- `src/core/rules.ts` 计算流派权重、单体羁绊占位和三层的最终方案。
+- `src/core/combos.ts` 为每个可用 1-3 流派组做流派与不同层的匹配，保证组合里的每个流派都真的参与。
+- `src/core/audio.ts` 每条分轨一个 Web Audio voice，平滑增益、共享循环区间，并暴露主分析器。
+- `src/stores/desk.ts` 负责棋盘编辑、手动模式、165 秒电台周期和阵容导入导出。
+- 打包版通过 Rust 命令和 Tauri asset 协议读取 `data/` 与 `assets/audio_ogg/`；英雄美术由 Vite 打进包里。
 
-### Rust commands
+### Rust 命令
 
-| command | purpose |
+| 命令 | 用途 |
 | --- | --- |
-| `asset_root` | resolved stem folder |
-| `scan_stems` | list OGG stems, durations, missing requirements |
-| `load_data` | read the JSON datasets from the repo/resource folder |
-| `load_settings` / `save_settings` | JSON settings in the app config dir |
-| `log_event` | mirror mixer diagnostics to stdout |
+| `asset_root` | 解析分轨目录 |
+| `scan_stems` | 列出 OGG 分轨、时长、缺失项 |
+| `load_data` | 从仓库/资源目录读取 JSON 数据 |
+| `load_settings` / `save_settings` | 读写应用配置目录里的 JSON 设置 |
+| `log_event` | 把混音诊断输出到 stdout |
 
-## Project layout
+## 项目结构
 
 ```
-data/set10_units.json        60 units: cost, traits, style, art, nameZh
-data/music_rules.json        styles, layers, thresholds, stems, zh labels
-src/core/rules.ts            weights, solo acts, layer assignment
-src/core/combos.ts           458 usable style combinations
-src/core/audio.ts            Web Audio mixer + analyser
-src/core/data.ts             data loading, Tauri commands, stem URLs
-src/core/art.ts              banner / wallpaper / stage lookup
-src/stores/desk.ts           reactive desk, radio, lineups
-src/stores/likes.ts          persisted style/combo likes
-src/components/              pool, board, spotlight, traits, mixer, StyleLab,
-                             PoolCard, Waveform, GlobalWallpaper
-src/assets/heroes/banner/    60 TFT champion banners
-src/assets/heroes/wallpaper/ 60 square set splashes
-src/assets/board/            generated stage and grain
-src/assets/screenshots/      README screenshots
-src/i18n/                    English + Simplified Chinese messages
-src-tauri/                   Rust backend and Tauri config
-assets/audio_ogg/            converted stems (git ignored)
-tools/                       extraction, conversion, dataset and art scripts
-.agents/skills/              reusable pipeline know-how
-tmp/                         scratch space (never committed)
+data/set10_units.json        60 个英雄：费用、羁绊、流派、美术、nameZh
+data/music_rules.json        流派、层、阈值、分轨、中文标签
+src/core/rules.ts            权重、单体羁绊、层分配
+src/core/combos.ts           458 种可用流派组合
+src/core/audio.ts            Web Audio 混音器 + 分析器
+src/core/data.ts             数据加载、Tauri 命令、分轨 URL
+src/core/art.ts              Banner / 壁纸 / 舞台查找
+src/stores/desk.ts           响应式工作台、电台、阵容
+src/stores/likes.ts          持久化的流派/组合点赞
+src/components/              英雄池、棋盘、Spotlight、羁绊、混音台、
+                             StyleLab、PoolCard、Waveform、GlobalWallpaper
+src/assets/heroes/banner/    60 张云顶英雄 Banner
+src/assets/heroes/wallpaper/ 60 张方形赛季原画
+src/assets/board/            生成的舞台和颗粒纹理
+src/assets/screenshots/      README 截图
+src/i18n/                    英文 + 简体中文文案
+src-tauri/                   Rust 后端和 Tauri 配置
+assets/audio_ogg/            转换后的分轨（git 忽略）
+tools/                       提取、转换、数据集和美术脚本
+.agents/skills/              可复用的流程经验
+tmp/                         临时目录（不提交）
 ```
 
-## Regenerating data
+## 重新生成数据
 
 ```powershell
 curl.exe -k -o tmp/tftdata/en_us.json https://raw.communitydragon.org/13.24/cdragon/tft/en_us.json
@@ -249,65 +218,40 @@ curl.exe -k -o tmp/tftdata/zh_cn.json  https://raw.communitydragon.org/13.24/cdr
 python tools/build_dataset.py
 ```
 
-The script writes `nameZh`, `traitNamesZh` and `styleNamesZh` with `\u` escapes,
-so the repository stays ASCII while the UI renders Chinese.
+脚本会把 `nameZh`、`traitNamesZh`、`styleNamesZh` 写成 `\u` 转义，因此数据文件保持 ASCII，UI 里正常显示中文。
 
-## Troubleshooting
+## 常见问题
 
-**Port 8787 already in use** - `bun run app:dev` uses
-`tools/dev-server-guard.mjs` and reuses an existing Vite server. Vite binds
-`127.0.0.1`; use that instead of `localhost` (which may resolve to `::1`).
+**8787 端口被占用** - `bun run app:dev` 会通过 `tools/dev-server-guard.mjs` 复用已有的 Vite 服务。Vite 绑定的是 `127.0.0.1`，不要用 `localhost`（它可能解析到 `::1`）。
 
-**No sound** - open Settings -> Audio diagnostics. The stem folder must contain
-the OGG files and `durations.json`. Browser mode serves them from Vite; packaged
-builds resolve `assets/audio_ogg` through `asset_root` and the asset protocol.
+**没有声音** - 打开 **设置 -> 音频诊断**。分轨目录里必须有 OGG 文件和 `durations.json`。浏览器模式由 Vite 提供文件；打包版通过 `asset_root` 和 asset 协议解析 `assets/audio_ogg`。
 
-**Changes not showing in the browser** - stop and restart `bun run dev` if a Vue
-component's transformed module looks stale; Vite occasionally keeps an old
-transform for a single file during rapid edits.
+**浏览器里改了代码不生效** - 如果某个 Vue 组件的转换结果看起来是旧的，停掉并重新运行 `bun run dev`；快速连续编辑时 Vite 偶尔会保留单个文件的旧转换缓存。
 
-**Drag does not work in the Tauri window** - keep
-`app.windows[0].dragDropEnabled` set to `false`; otherwise WebView2's file-drop
-handler can swallow HTML5 drag events.
+**Tauri 窗口里拖拽无效** - 保持 `app.windows[0].dragDropEnabled` 为 `false`；否则 WebView2 的文件拖放处理会吞掉 HTML5 拖拽事件。
 
-**Packaged app cannot find data** - `load_data` reads the bundled `data`
-resource. Check `src-tauri/tauri.conf.json -> bundle.resources` includes both
-`../data` and `../assets/audio_ogg`.
+**打包版找不到数据** - `load_data` 读取打包进去的 `data` 资源。检查 `src-tauri/tauri.conf.json -> bundle.resources` 是否同时包含 `../data` 和 `../assets/audio_ogg`。
 
-## Provenance and credits
+## 来源与致谢
 
-- Audio: extracted from the Set 10 build and community rips; the OGG conversion
-  and stem manifest live in `tools/`. Audio files are not committed.
-- Art: TFT set 10 champion banners/splashes from CommunityDragon's patch 13.24
-  game assets; `src/assets/heroes/credits.json` lists every source URL.
-- Rules: the 13.24 `Map22.wad.client` switch/state table, CommunityDragon set
-  data, and Riot's Remix Rumble design interview.
-- This is a fan project. Teamfight Tactics and its assets belong to Riot Games;
-  it is not affiliated with or endorsed by Riot.
+- 音频：从 S10 游戏构建和社区提取版中整理；OGG 转换和分轨清单在 `tools/` 里。音频文件不提交到源码仓库。
+- 美术：来自 CommunityDragon 的 13.24 云顶英雄 Banner / 原画；`src/assets/heroes/credits.json` 记录了每个来源 URL。
+- 规则：13.24 `Map22.wad.client` 的开关/状态表、CommunityDragon 赛季数据，以及 Riot 的强音争霸设计访谈。
+- 这是粉丝项目。《云顶之弈》及其素材归 Riot Games 所有，本项目与 Riot 无关联，也未获其背书。
 
-Reusable research and build notes live in `.agents/skills/`:
-`tft-set10-music-system`, `tft-champion-portraits`, `lol-wad-extraction`,
-`riot-old-patch-extraction`, `tauri-vue-mixing-desk` and
-`browser-cdp-smoke-test`.
+可复用的研究和构建笔记在 `.agents/skills/`：
+`tft-set10-music-system`、`tft-champion-portraits`、`lol-wad-extraction`、
+`riot-old-patch-extraction`、`tauri-vue-mixing-desk`、`browser-cdp-smoke-test`。
 
-## License
+## 许可证
 
-The source code in this repository is licensed under the **GNU General Public
-License, version 3 only (GPL-3.0-only)**. The full text is in
-[LICENSE](LICENSE).
+本仓库的源代码使用 **GNU 通用公共许可证第 3 版（GPL-3.0-only）**。完整文本见 [LICENSE](LICENSE)。
 
-Teamfight Tactics, League of Legends and their game assets, audio, names and
-imagery belong to Riot Games and are **not** covered by the GPL. They are
-included or downloaded here for a non-commercial fan project; see
-[Provenance and credits](#provenance-and-credits) for sources and attribution.
-If you redistribute a build, keep the GPL notice for the code and respect Riot's
-asset rights separately.
+《云顶之弈》《英雄联盟》及其游戏素材、音频、名称和图像归 Riot Games 所有，**不**在 GPL 的覆盖范围内。它们仅作为非商业粉丝项目的一部分被使用或下载；来源和署名见 [来源与致谢](#来源与致谢)。如果你重新分发构建，请保留代码的 GPL 声明，并单独尊重 Riot 的素材权利。
 
-## Known limitations
+## 已知限制
 
-- The weight formula and tie-break are reconstructed; the in-game selection code
-  is native and not shipped as a readable rule table.
-- Likes are stored locally (no account or server); there is no global like count.
-- Emblems, augments, portals, music phases and stingers are out of scope.
-- The app is Windows-first (Tauri/WebView2); the web dev server also runs on the
-  other desktop platforms.
+- 权重公式和平局规则是重建的；游戏内的选层代码是原生实现，并没有以可读规则表的形式随游戏发布。
+- 点赞保存在本机（没有账号或服务器），没有全局点赞数。
+- 纹章、强化符文、传送门、阶段音乐和转场音效不在范围内。
+- 应用优先支持 Windows（Tauri/WebView2）；Web 开发服务器也可以在其他桌面平台运行。
