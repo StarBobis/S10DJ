@@ -1124,6 +1124,7 @@ button.play {
 }
 
 .pool-banner {
+  --halo-gap: 3px;
   position: relative;
   display: block;
   width: 100%;
@@ -1133,8 +1134,10 @@ button.play {
 }
 
 .pool-banner-art {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: var(--halo-gap);
+  width: calc(100% - 2 * var(--halo-gap));
+  height: calc(100% - 2 * var(--halo-gap));
   object-fit: cover;
   display: block;
   transition: transform 0.25s ease;
@@ -1146,8 +1149,34 @@ button.play {
 
 .pool-banner-shade {
   position: absolute;
-  inset: 0;
+  inset: var(--halo-gap);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 38%, rgba(5, 4, 9, 0.86));
+}
+
+/*
+ * League client new-item halo (assets/fx/linger.webm, from rcp-fe-lol-collections).
+ *
+ * The client draws this opaque clip *behind* the item portrait and lets the art
+ * cover the black interior, so only the energy ring shows around the tile. Same
+ * layering here: the clip is the bottom layer and the banner art is inset a few
+ * pixels, which is what exposes the ring. The clip is pulled 6% outside the tile
+ * because its ring is inset ~6.5% from the video edge - that puts the ring on the
+ * tile border instead of under the artwork.
+ */
+.linger-glow {
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  width: 112%;
+  height: 112%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linger-glow {
+    display: none;
+  }
 }
 
 .pool-cost {

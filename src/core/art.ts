@@ -23,6 +23,16 @@ const stageModules = import.meta.glob('../assets/board/*.webp', {
   import: 'default',
 }) as Record<string, string>;
 
+/**
+ * assets/fx holds the client's new-item halo clip (see the lol-client-ui-effects
+ * skill). It is a video, so it stays out of the portrait lookup tables.
+ */
+const fxModules = import.meta.glob('../assets/fx/*.webm', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
 function index(modules: Record<string, string>): Map<string, string> {
   const map = new Map<string, string>();
   for (const [path, url] of Object.entries(modules)) {
@@ -51,4 +61,9 @@ export function boardStage(): string {
 
 export function heroArtCount(): number {
   return banners.size;
+}
+
+/** Empty when the clip is absent, which disables the halo instead of breaking it. */
+export function lingerGlow(): string {
+  return Object.entries(fxModules).find(([path]) => path.includes('linger'))?.[1] ?? '';
 }
