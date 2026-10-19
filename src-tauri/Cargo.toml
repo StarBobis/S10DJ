@@ -1,6 +1,6 @@
 [package]
 name = "set10-mixing-desk"
-version = "0.1.0"
+version = "0.2.0"
 description = "Set 10 Remix Rumble mixing desk"
 edition = "2021"
 rust-version = "1.77"
