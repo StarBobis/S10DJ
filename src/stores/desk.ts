@@ -50,7 +50,8 @@ export type NoticeCode =
   | 'lineupFailed'
   | '';
 
-const RADIO_INTERVAL = 165000;
+/** How often the radio compares the audio position against the song length. */
+const RADIO_TICK_MS = 250;
 
 interface RadioState {
   enabled: boolean;
@@ -58,7 +59,6 @@ interface RadioState {
   beat: number;
   progress: number;
   remaining: number;
-  nextAt: number;
   queue: string[];
 }
 
@@ -87,7 +87,6 @@ const state = reactive({
     beat: 0,
     progress: 0,
     remaining: 0,
-    nextAt: 0,
     queue: [],
   } as RadioState,
 });
@@ -102,8 +101,9 @@ const mixer = new StemMixer({
 let noticeTimer: ReturnType<typeof setTimeout> | null = null;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let applyTimer: ReturnType<typeof setTimeout> | null = null;
-let radioTimer: ReturnType<typeof setInterval> | null = null;
 let radioTicker: ReturnType<typeof setInterval> | null = null;
+/** Set by a station change: the next plan apply has to restart the songs. */
+let restartPending = false;
 
 interface RadioBackup {
   board: BoardUnit[];
@@ -492,11 +492,27 @@ function radioBoard(style: string): BoardUnit[] {
   }));
 }
 
-function updateRadioProgress() {
+/**
+ * One radio station plays exactly one song: the mix loops at the shortest
+ * active stem, so that length is the station's play time. Nothing here uses
+ * wall-clock time - the audio position decides, which means a slow stem load,
+ * a pause or a manual realign cannot cut a song short.
+ */
+function updateRadioProgress(): void {
   if (!state.radio.enabled) return;
-  const remaining = Math.max(0, state.radio.nextAt - Date.now());
-  state.radio.progress = Math.min(1, Math.max(0, 1 - remaining / RADIO_INTERVAL));
-  state.radio.remaining = Math.ceil(remaining / 1000);
+  const song = mixer.songSeconds();
+  if (!song) {
+    state.radio.progress = 0;
+    state.radio.remaining = 0;
+    return;
+  }
+  const position = mixer.positionSeconds;
+  if (position >= song) {
+    radioBeat();
+    return;
+  }
+  state.radio.progress = Math.min(1, Math.max(0, position / song));
+  state.radio.remaining = Math.max(0, Math.ceil(song - position));
 }
 
 function radioBeat(): void {
@@ -512,10 +528,14 @@ function radioBeat(): void {
     board.find((entry) => unitByApi(entry.apiName)?.style === style) ?? board[0] ?? null;
   state.selected = featured?.apiName ?? null;
   state.preview = null;
-  state.radio.nextAt = Date.now() + RADIO_INTERVAL;
   state.radio.progress = 0;
-  state.radio.remaining = Math.round(RADIO_INTERVAL / 1000);
+  state.radio.remaining = 0;
   recompute();
+  // Start the new station from the top of its own loop. Without this hard
+  // reset the surviving voices keep their old phase while the new stems come
+  // in at the new loop offset, which mixes two different bar positions.
+  restartPending = true;
+  scheduleApply();
 }
 
 export function startRadio(): void {
@@ -536,8 +556,7 @@ export function startRadio(): void {
     state.settings.layers[layer].override = null;
   }
   radioBeat();
-  radioTimer = setInterval(radioBeat, RADIO_INTERVAL);
-  radioTicker = setInterval(updateRadioProgress, 250);
+  radioTicker = setInterval(updateRadioProgress, RADIO_TICK_MS);
   if (state.status === 'stopped') void play();
 }
 
@@ -546,12 +565,8 @@ export function stopRadio(restore = true): void {
   state.radio.enabled = false;
   state.radio.progress = 0;
   state.radio.remaining = 0;
-  state.radio.nextAt = 0;
   state.radio.station = 'none';
-  if (radioTimer) {
-    clearInterval(radioTimer);
-    radioTimer = null;
-  }
+  restartPending = false;
   if (radioTicker) {
     clearInterval(radioTicker);
     radioTicker = null;
@@ -833,10 +848,20 @@ export async function initDesk(): Promise<void> {
 }
 
 function scheduleApply() {
-  if (!state.playing) return;
+  if (!state.playing) {
+    restartPending = false;
+    return;
+  }
   if (applyTimer) clearTimeout(applyTimer);
   applyTimer = setTimeout(() => {
     applyTimer = null;
+    // A station change restarts every voice together; a plain plan edit keeps
+    // the running phase so layer tweaks never interrupt the song.
+    if (restartPending) {
+      restartPending = false;
+      mixer.restart(planFiles());
+      return;
+    }
     void mixer.applyPlan(planFiles());
   }, 40);
 }

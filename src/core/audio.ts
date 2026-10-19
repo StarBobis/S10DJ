@@ -36,6 +36,8 @@ export class StemMixer {
   };
   private master = 0.9;
   private lockLoop = true;
+  /** Loop length of the plan currently applied, used to detect phase breaks. */
+  private loopLength: number | null = null;
   private playing = false;
   private startedAt = 0;
   private offset = 0;
@@ -50,6 +52,15 @@ export class StemMixer {
   /** Live analyser for the waveform display (null until the first play). */
   get analyser(): AnalyserNode | null {
     return this.analyserNode;
+  }
+
+  /**
+   * Seconds played inside the current loop, zero while the transport is idle.
+   * Radio rotation is driven by this, not by wall-clock time, so a slow stem
+   * load or a pause cannot eat into the song.
+   */
+  get positionSeconds(): number {
+    return this.position();
   }
 
   private ensureContext(): AudioContext {
@@ -151,13 +162,25 @@ export class StemMixer {
     return files;
   }
 
-  private activeLoop(): number | null {
-    if (!this.lockLoop) return null;
+  /**
+   * Length of the current song in seconds.
+   *
+   * Locked-loop playback wraps every voice at the shortest active stem, so that
+   * stem is one full pass of the mix; the radio uses it as the station length.
+   * Stems that are still decoding are ignored, so the value only ever shrinks
+   * towards the real length.
+   */
+  songSeconds(): number | null {
     const lengths = [...new Set(this.activeFiles())]
       .map((file) => this.buffers.get(file)?.duration)
       .filter((value): value is number => typeof value === 'number' && value > 0.05);
     if (!lengths.length) return null;
     return Math.min(...lengths);
+  }
+
+  private activeLoop(): number | null {
+    if (!this.lockLoop) return null;
+    return this.songSeconds();
   }
 
   private voiceTarget(file: string): number {
@@ -228,8 +251,30 @@ export class StemMixer {
     this.syncLoopRegions();
 
     const loop = this.activeLoop();
-    const startAt = hard ? this.startedAt : ctx.currentTime + 0.02;
+    // A hard start waits for every stem to decode, so the real start can be
+    // later than the requested one; recording it keeps positionSeconds honest
+    // and makes a station change land on the loop wrap instead of drifting.
+    const startAt = hard ? Math.max(this.startedAt, ctx.currentTime + 0.02) : ctx.currentTime + 0.02;
+    if (hard) this.startedAt = startAt;
     const raw = hard ? 0 : this.position();
+
+    // A soft apply keeps voices running so layer edits stay in sync - but only
+    // while the loop length holds. Once it changes, the survivors still sit on
+    // the old bar grid while the new stems enter on the new one, so re-seat
+    // every voice at the current position modulo the new loop.
+    const resync =
+      !hard && raw > 0.25 && this.loopLength !== null && loop !== null &&
+      Math.abs(loop - this.loopLength) > 0.05;
+    this.loopLength = loop;
+    if (resync) {
+      for (const voice of this.voices.values()) {
+        voice.gain.gain.cancelScheduledValues(ctx.currentTime);
+        voice.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01);
+        voice.node.stop(ctx.currentTime + 0.05);
+      }
+      this.voices.clear();
+      this.emit(`re-seated ${files.length} voices at ${raw.toFixed(2)}s (loop ${loop.toFixed(2)}s)`);
+    }
 
     for (const file of files) {
       const buffer = this.buffers.get(file);
@@ -267,6 +312,12 @@ export class StemMixer {
       voice.node.stop(ctx.currentTime + 0.4);
       this.voices.delete(file);
     }
+
+    if (hard) {
+      this.emit(
+        `hard start: ${files.length} stems at offset 0 (song ${loop ? loop.toFixed(2) : '?'}s): ${files.join(', ')}`,
+      );
+    }
   }
 
   /** Live layer edit: toggle, fader or style override. */
@@ -289,16 +340,25 @@ export class StemMixer {
     this.syncLoopRegions();
   }
 
-  restart() {
+  /**
+   * Restart playback from the top of the loop, optionally with a new plan.
+   *
+   * `start` intentionally keeps running voices alive so layer edits stay in
+   * sync, so a station change needs this hard reset: every voice is faded out
+   * and the new plan starts sample-aligned at offset zero.
+   */
+  restart(plan?: Record<Layer, string | null>) {
     if (!this.ctx || !this.playing) return;
     const now = this.ctx.currentTime;
     for (const voice of this.voices.values()) {
+      voice.gain.gain.cancelScheduledValues(now);
+      voice.gain.gain.setTargetAtTime(0, now, 0.02);
       voice.node.stop(now + 0.05);
     }
     this.voices.clear();
     this.offset = 0;
     this.startedAt = now + 0.06;
-    void this.applyPlan(this.planFiles, { hard: true });
+    void this.applyPlan(plan ?? this.planFiles, { hard: true });
   }
 
   stop() {
@@ -310,6 +370,7 @@ export class StemMixer {
       voice.node.stop(now + 0.3);
     }
     this.voices.clear();
+    this.loopLength = null;
     this.playing = false;
     this.offset = 0;
     this.startedAt = 0;

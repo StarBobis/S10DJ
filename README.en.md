@@ -13,8 +13,9 @@ game does - or ignore champions entirely and compose the mix by hand.
 
 - **One desk page**: champion pool, 4x7 hex board, hero spotlight, traits and the
   three-channel mixing desk are visible together.
-- **Radio**: builds a themed board, starts playback and holds the station for a
-  full 2:45 track before rotating styles and eras. Skip with one button.
+- **Radio**: builds a themed board, starts playback and holds the station for one
+  full song (about 2:45-3:22, depending on style and era) before rotating styles
+  and eras. Skip with one button.
 - **Style Lab**: no champions required. Generates all **458 usable 1-3 style
   combinations**, with per-style and per-combo likes that reorder the
   recommendations. Jhin combinations start at the top.
@@ -202,8 +203,8 @@ Key implementation notes:
   style-to-distinct-layer matching, so every style in a combo contributes.
 - `src/core/audio.ts` uses one Web Audio voice per stem file, ramps gains, keeps
   a shared loop region and exposes the master analyser.
-- `src/stores/desk.ts` owns board editing, manual mode, the 165 s radio cycle and
-  lineup import/export.
+- `src/stores/desk.ts` owns board editing, manual mode, the audio-position driven
+  radio rotation and lineup import/export.
 - Packaged builds read `data/` and `assets/audio_ogg/` through Rust commands and
   the Tauri asset protocol; the hero art is bundled by Vite.
 

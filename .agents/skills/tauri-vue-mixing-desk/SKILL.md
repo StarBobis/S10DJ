@@ -64,14 +64,33 @@ drop.
 ## Radio mode
 
 `startRadio()` snapshots board, selection, era, mix mode and layer settings, then
-clears overrides and enables all layers. It starts a **165 s** interval (one full
-track) that picks a style from a shuffled queue, builds a 6-10 unit board around
-that style, selects a featured champion (which changes the global wallpaper), and
-may flip the era. A 250 ms ticker publishes `radio.progress` and
-`radio.remaining` for the transport meter/countdown. `nextStation()` skips;
-`stopRadio(true)` restores the snapshot. Any manual board edit or settings change
-calls `stopRadio(false)` so the radio cannot fight the user. Do not shorten this
-interval: the owner explicitly asked for a full song before the station changes.
+clears overrides and enables all layers. `radioBeat()` picks a style from a
+shuffled queue, builds a 6-10 unit board around that style, selects a featured
+champion (which changes the global wallpaper), and may flip the era.
+
+**One station = one song, measured in audio time.** A 250 ms ticker compares
+`mixer.positionSeconds` against `mixer.songSeconds()` (the shortest active stem,
+because locked-loop playback wraps every voice there) and only publishes
+`radio.progress` / `radio.remaining` until the song ends. Never drive the
+rotation from `setInterval`/`Date.now()`: the old fixed 165 s timer cut every
+early-era station 33-37 s short (the songs are 197.6-202.0 s) and its countdown
+kept running while paused. Audio-position rotation also survives a slow stem
+load, a pause and a manual realign for free.
+
+A station change must also **restart the mix aligned**: `radioBeat()` sets
+`restartPending` and lets the debounced `scheduleApply()` call
+`mixer.restart(planFiles())`, which fades out every voice and starts the new
+plan with all stems at loop offset 0. A plain `applyPlan()` keeps the surviving
+voices at their old phase while new stems enter at the new loop offset, which
+mixes two bar positions - that is the "messy rhythms after a station change"
+report. `nextStation()` skips the same way; `stopRadio(true)` restores the
+snapshot; any manual board edit or settings change calls `stopRadio(false)` so
+the radio cannot fight the user.
+
+`mixer.restart(plan)` accepts a plan because the station's plan is already
+computed when the beat fires; `restart()` without an argument is the transport
+realign button. In `applyPlan` a hard start also re-records `startedAt` after
+the stem loads, otherwise the first song's countdown drifts by the decode time.
 
 ## Champion pool grouping
 
@@ -198,6 +217,12 @@ reconstruction from Riot's interview plus shipped breakpoint data.
   165 s vs 170 s): set `loopStart`/`loopEnd` to the shortest active stem so
   layers cannot drift apart over time. `setLockLoop` updates `loopEnd` on live
   voices instead of restarting them.
+* **A phase-preserving apply is only phase-preserving while the loop length
+  holds.** New stems start at `position % loop`; surviving voices still wrap on
+  the previous loop. `applyPlan` therefore re-seats every voice at the current
+  position when the loop length changes (log line `re-seated N voices`), or the
+  mix ends up on two bar grids. `restart(plan)` does the same at offset 0 and is
+  what a station change uses.
 * **Load stems in parallel.** `applyPlan` awaits `Promise.all`, and `load()`
   deduplicates concurrent requests for the same file. Sequential awaits made the
   first play take several seconds.
@@ -239,6 +264,16 @@ Chinese names in `.pool-name`/`.hex-label`, drag a hex, press Play, start radio
 and wait for the station to rotate, switch to Style Lab and click a combo, then
 read `.channel-switch`. A successful run logs `selftest: 3/3 stems decodable`,
 the transport becomes `playing`, and the waveform canvas has a non-zero size.
+
+Radio playback is cheap to assert without listening: every station start and
+every aligned restart logs `[desk] hard start: N stems at offset 0 (song Xs)`.
+A station must rotate after `X` seconds - in the early era that is ~198 s, so a
+rotation at 165 s means a wall-clock timer crept back in. While paused the
+countdown in `.radio-copy em` must stay frozen. A loop-length change on a live
+mix logs `[desk] re-seated N voices at Ys`. `bun tools/radio-cdp-test.mjs` runs all of this against a headless Chrome on
+port 9222 (about four minutes, the rotation watch dominates) and saves
+`tmp/radio-fixed.png`.
+
 For a packaged check, build with `tauri build --no-bundle`, launch the exe with
 `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, and repeat
 the same CDP assertions against `http://tauri.localhost/`.
