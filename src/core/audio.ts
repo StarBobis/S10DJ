@@ -148,16 +148,21 @@ export class StemMixer {
       if (!voice) {
         const node = ctx.createBufferSource();
         node.buffer = buffer;
-        node.loop = true;
         const target = loop ? Math.min(loop, buffer.duration) : buffer.duration;
-        node.loopStart = 0;
-        node.loopEnd = target;
+        // A degenerate loop region would make Web Audio throw; fall back to a
+        // one-shot source instead.
+        if (target > 0.05) {
+          node.loop = true;
+          node.loopStart = 0;
+          node.loopEnd = target;
+        }
         const gain = ctx.createGain();
         gain.gain.value = 0;
         node.connect(gain).connect(this.masterGain);
         // Clamp the schedule offset: a start time in the future must not yield a
         // negative offset, which is what AudioBufferSourceNode.start rejects.
-        const safeOffset = Math.max(0, Math.min(hard ? 0 : offset, Math.max(0, target - 0.01)));
+        const limit = target > 0.05 ? Math.max(0, target - 0.01) : Math.max(0, buffer.duration - 0.01);
+        const safeOffset = Math.max(0, Math.min(hard ? 0 : offset, limit));
         node.start(startAt, safeOffset);
         voice = { node, gain, file };
         this.voices.set(file, voice);
