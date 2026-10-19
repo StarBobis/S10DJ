@@ -1,7 +1,9 @@
 
 # Rules
 
-- 干完活必须通过这个来通知用户 https://wxpusher.zjiecode.com/api/send/message/SPT_AfgXTrmEG2qVazzIEtkeWWwbKm39/Hello%20WxPusher
+- 干完活必须通过这个来通知用户 https://wxpusher.zjiecode.com/api/send/message/SPT_AfgXTrmEG2qVazzIEtkeWWwbKm39/Hello%20WxPusher   
+不过结尾字符换成你自己的消息通知，40个字以内的中文简短描述即可
+
 
 # 必须遵守的规则
 

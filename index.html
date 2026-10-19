@@ -1,58 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Set 10 Remix Rumble - Mixing Desk</title>
-<link rel="stylesheet" href="src/styles.css" />
-</head>
-<body>
-<header>
-  <h1>Set 10 &middot; Remix Rumble Mixing Desk</h1>
-  <p class="sub">
-    Reconstructed from the shipped 13.24 game data (three layers:
-    <code>drums</code> / <code>chords</code> / <code>top</code>) and the official
-    design interview (style weights follow unit counts and breakpoint tiers).
-  </p>
-</header>
-
-<main>
-  <section class="panel board">
-    <h2>Board</h2>
-    <div class="costs" id="roster"></div>
-    <div class="board-units" id="boardUnits"></div>
-    <button id="clearBoard" class="ghost">Clear board</button>
-  </section>
-
-  <section class="panel layers">
-    <h2>Mix layers</h2>
-    <div class="layer-grid" id="layerGrid"></div>
-    <div class="weights" id="weights"></div>
-  </section>
-
-  <section class="panel traits">
-    <h2>Active traits</h2>
-    <div id="traitList" class="trait-list"></div>
-  </section>
-
-  <section class="panel transport">
-    <h2>Transport</h2>
-    <div class="row">
-      <button id="play" class="primary">Play</button>
-      <button id="stop" class="ghost">Stop</button>
-      <label class="era">
-        Era
-        <select id="era">
-          <option value="late">late</option>
-          <option value="early">early</option>
-        </select>
-      </label>
-    </div>
-    <div class="sliders" id="sliders"></div>
-    <p class="hint" id="status">Load the stems, then add units to hear the mix.</p>
-  </section>
-</main>
-
-<script type="module" src="src/app.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Set 10 Mixing Desk</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

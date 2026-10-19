@@ -131,10 +131,13 @@ function renderBoard(units) {
 function renderLayers(assignment) {
   const host = el('layerGrid');
   host.innerHTML = '';
+  const era = el('era')?.value || 'late';
   for (const layer of LAYERS) {
     const info = assignment[layer];
     const card = document.createElement('div');
     card.className = `layer-card style-${info.style}`;
+    const file = mixer.fileFor(info.style, layer, era);
+    if (!file) card.classList.add('no-stem');
     const options = ['auto', ...Object.keys(STYLE_LAYERS).filter((style) => STYLE_LAYERS[style].includes(layer))]
       .map((style) => `<option value="${style}" ${state.overrides[layer] === style ? 'selected' : ''}>${style === 'auto' ? 'auto' : STYLE_LABEL[style]}</option>`)
       .join('');
@@ -143,7 +146,8 @@ function renderLayers(assignment) {
       <span class="layer-style">${STYLE_LABEL[info.style]}</span>
       <span class="layer-weight">weight ${info.weight}${info.spotlight ? ' &middot; spotlight' : ''}</span>
       <select class="layer-select" data-layer="${layer}">${options}</select>
-      <span class="layer-switch">Set_Switch_set10_${info.style}_${layer}</span>`;
+      <span class="layer-switch">Set_Switch_set10_${info.style}_${layer}</span>
+      <span class="layer-stem">${file ? `${file} (${era})` : `no ${era} stem`}</span>`;
     card.querySelector('select').addEventListener('change', (event) => {
       const value = event.target.value;
       if (value === 'auto') delete state.overrides[layer];

@@ -10,3 +10,9 @@ assets/audio_ogg/
 
 # downloaded tools
 tools/bin/
+
+# frontend / tauri build output
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/

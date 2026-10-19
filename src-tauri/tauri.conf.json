@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Set 10 Mixing Desk",
+  "version": "0.1.0",
+  "identifier": "com.set10.mixingdesk",
+  "build": {
+    "beforeDevCommand": "bun run dev",
+    "devUrl": "http://localhost:8787",
+    "beforeBuildCommand": "bun run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Set 10 Mixing Desk",
+        "width": 1360,
+        "height": 840,
+        "minWidth": 960,
+        "minHeight": 620,
+        "decorations": false,
+        "resizable": true,
+        "center": true,
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$RESOURCE/**", "$APPDATA/**", "$HOME/**"]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"],
+    "resources": {
+      "../data": "data",
+      "../assets/audio_ogg": "assets/audio_ogg"
+    }
+  }
+}
