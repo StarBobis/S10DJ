@@ -2,6 +2,7 @@
 name = "set10-mixing-desk"
 version = "0.2.0"
 description = "Set 10 Remix Rumble mixing desk"
+license = "GPL-3.0-only"
 edition = "2021"
 rust-version = "1.77"
 

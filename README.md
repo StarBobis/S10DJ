@@ -290,6 +290,19 @@ Reusable research and build notes live in `.agents/skills/`:
 `riot-old-patch-extraction`, `tauri-vue-mixing-desk` and
 `browser-cdp-smoke-test`.
 
+## License
+
+The source code in this repository is licensed under the **GNU General Public
+License, version 3 only (GPL-3.0-only)**. The full text is in
+[LICENSE](LICENSE).
+
+Teamfight Tactics, League of Legends and their game assets, audio, names and
+imagery belong to Riot Games and are **not** covered by the GPL. They are
+included or downloaded here for a non-commercial fan project; see
+[Provenance and credits](#provenance-and-credits) for sources and attribution.
+If you redistribute a build, keep the GPL notice for the code and respect Riot's
+asset rights separately.
+
 ## Known limitations
 
 - The weight formula and tie-break are reconstructed; the in-game selection code
