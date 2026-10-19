@@ -1,0 +1,12 @@
+# scratch space for extraction work
+tmp/
+extract/
+__pycache__/
+*.pyc
+
+# extracted stem audio (regenerate with tools/convert_stems.py)
+assets/audio/
+assets/audio_ogg/
+
+# downloaded tools
+tools/bin/

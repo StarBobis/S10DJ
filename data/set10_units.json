@@ -1,0 +1,822 @@
+{
+ "patch": "13.24",
+ "set": 10,
+ "units": [
+  {
+   "apiName": "TFT10_Annie",
+   "cost": 1,
+   "musicTraits": [
+    "Emo"
+   ],
+   "name": "Annie",
+   "style": "emo",
+   "traits": [
+    "Emo",
+    "Spellweaver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Corki",
+   "cost": 1,
+   "musicTraits": [
+    "8-bit"
+   ],
+   "name": "Corki",
+   "style": "8bit",
+   "traits": [
+    "8-bit",
+    "Big Shot"
+   ]
+  },
+  {
+   "apiName": "TFT10_Evelynn",
+   "cost": 1,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Evelynn",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Crowd Diver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Jinx",
+   "cost": 1,
+   "musicTraits": [
+    "Punk"
+   ],
+   "name": "Jinx",
+   "style": "punkrock",
+   "traits": [
+    "Punk",
+    "Rapidfire"
+   ]
+  },
+  {
+   "apiName": "TFT10_KSante",
+   "cost": 1,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "K'Sante",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Kennen",
+   "cost": 1,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Kennen",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Superfan",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Lillia",
+   "cost": 1,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Lillia",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Superfan",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Nami",
+   "cost": 1,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Nami",
+   "style": "funk",
+   "traits": [
+    "Disco",
+    "Dazzler"
+   ]
+  },
+  {
+   "apiName": "TFT10_Olaf",
+   "cost": 1,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Olaf",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Bruiser"
+   ]
+  },
+  {
+   "apiName": "TFT10_TahmKench",
+   "cost": 1,
+   "musicTraits": [
+    "Country"
+   ],
+   "name": "Tahm Kench",
+   "style": "country",
+   "traits": [
+    "Country",
+    "Bruiser"
+   ]
+  },
+  {
+   "apiName": "TFT10_Taric",
+   "cost": 1,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Taric",
+   "style": "funk",
+   "traits": [
+    "Disco",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Vi",
+   "cost": 1,
+   "musicTraits": [
+    "Punk"
+   ],
+   "name": "Vi",
+   "style": "punkrock",
+   "traits": [
+    "Punk",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Yasuo",
+   "cost": 1,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Yasuo",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Edgelord"
+   ]
+  },
+  {
+   "apiName": "TFT10_Aphelios",
+   "cost": 2,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "Aphelios",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Rapidfire"
+   ]
+  },
+  {
+   "apiName": "TFT10_Bard",
+   "cost": 2,
+   "musicTraits": [
+    "Jazz"
+   ],
+   "name": "Bard",
+   "style": "jazz",
+   "traits": [
+    "Jazz",
+    "Dazzler"
+   ]
+  },
+  {
+   "apiName": "TFT10_Garen",
+   "cost": 2,
+   "musicTraits": [
+    "8-bit"
+   ],
+   "name": "Garen",
+   "style": "8bit",
+   "traits": [
+    "8-bit",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Gnar",
+   "cost": 2,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Gnar",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Superfan",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Gragas",
+   "cost": 2,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Gragas",
+   "style": "funk",
+   "traits": [
+    "Disco",
+    "Spellweaver",
+    "Bruiser"
+   ]
+  },
+  {
+   "apiName": "TFT10_Jax",
+   "cost": 2,
+   "musicTraits": [
+    "EDM"
+   ],
+   "name": "Jax",
+   "style": "edm",
+   "traits": [
+    "EDM",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Kaisa",
+   "cost": 2,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Kai'Sa",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Big Shot"
+   ]
+  },
+  {
+   "apiName": "TFT10_Katarina",
+   "cost": 2,
+   "musicTraits": [
+    "Country"
+   ],
+   "name": "Katarina",
+   "style": "country",
+   "traits": [
+    "Country",
+    "Crowd Diver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Kayle",
+   "cost": 2,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Kayle",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Edgelord"
+   ]
+  },
+  {
+   "apiName": "TFT10_Pantheon",
+   "cost": 2,
+   "musicTraits": [
+    "Punk"
+   ],
+   "name": "Pantheon",
+   "style": "punkrock",
+   "traits": [
+    "Punk",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Senna",
+   "cost": 2,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Senna",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Rapidfire"
+   ]
+  },
+  {
+   "apiName": "TFT10_Seraphine",
+   "cost": 2,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Seraphine",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Spellweaver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Twitch",
+   "cost": 2,
+   "musicTraits": [
+    "Punk"
+   ],
+   "name": "Twitch",
+   "style": "punkrock",
+   "traits": [
+    "Punk",
+    "Executioner"
+   ]
+  },
+  {
+   "apiName": "TFT10_Amumu",
+   "cost": 3,
+   "musicTraits": [
+    "Emo"
+   ],
+   "name": "Amumu",
+   "style": "emo",
+   "traits": [
+    "Emo",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Ekko",
+   "cost": 3,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Ekko",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Spellweaver",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Lulu",
+   "cost": 3,
+   "musicTraits": [
+    "Hyperpop"
+   ],
+   "name": "Lulu",
+   "style": "hyperpop",
+   "traits": [
+    "Hyperpop",
+    "Spellweaver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Lux",
+   "cost": 3,
+   "musicTraits": [
+    "EDM"
+   ],
+   "name": "Lux",
+   "style": "edm",
+   "traits": [
+    "EDM",
+    "Dazzler"
+   ]
+  },
+  {
+   "apiName": "TFT10_MissFortune",
+   "cost": 3,
+   "musicTraits": [
+    "Jazz"
+   ],
+   "name": "Miss Fortune",
+   "style": "jazz",
+   "traits": [
+    "Jazz",
+    "Big Shot"
+   ]
+  },
+  {
+   "apiName": "TFT10_Mordekaiser",
+   "cost": 3,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Mordekaiser",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Neeko",
+   "cost": 3,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Neeko",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Superfan",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Riven",
+   "cost": 3,
+   "musicTraits": [
+    "8-bit"
+   ],
+   "name": "Riven",
+   "style": "8bit",
+   "traits": [
+    "8-bit",
+    "Edgelord"
+   ]
+  },
+  {
+   "apiName": "TFT10_Samira",
+   "cost": 3,
+   "musicTraits": [
+    "Country"
+   ],
+   "name": "Samira",
+   "style": "country",
+   "traits": [
+    "Country",
+    "Executioner"
+   ]
+  },
+  {
+   "apiName": "TFT10_Sett",
+   "cost": 3,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "Sett",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Bruiser",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Urgot",
+   "cost": 3,
+   "musicTraits": [
+    "Country"
+   ],
+   "name": "Urgot",
+   "style": "country",
+   "traits": [
+    "Country",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Vex",
+   "cost": 3,
+   "musicTraits": [
+    "Emo"
+   ],
+   "name": "Vex",
+   "style": "emo",
+   "traits": [
+    "Emo",
+    "Executioner"
+   ]
+  },
+  {
+   "apiName": "TFT10_Yone",
+   "cost": 3,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "Yone",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Edgelord",
+    "Crowd Diver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Ahri",
+   "cost": 4,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Ahri",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Spellweaver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Akali",
+   "cost": 4,
+   "musicTraits": [
+    "K/DA"
+   ],
+   "name": "Akali",
+   "style": "kda",
+   "traits": [
+    "K/DA",
+    "Executioner",
+    "Breakout"
+   ]
+  },
+  {
+   "apiName": "TFT10_Akali_TrueDamage",
+   "cost": 4,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Akali",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Executioner",
+    "Breakout"
+   ]
+  },
+  {
+   "apiName": "TFT10_Blitzcrank",
+   "cost": 4,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Blitzcrank",
+   "style": "funk",
+   "traits": [
+    "Disco",
+    "Sentinel"
+   ]
+  },
+  {
+   "apiName": "TFT10_Caitlyn",
+   "cost": 4,
+   "musicTraits": [
+    "8-bit"
+   ],
+   "name": "Caitlyn",
+   "style": "8bit",
+   "traits": [
+    "8-bit",
+    "Rapidfire"
+   ]
+  },
+  {
+   "apiName": "TFT10_Ezreal",
+   "cost": 4,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "Ezreal",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Big Shot"
+   ]
+  },
+  {
+   "apiName": "TFT10_Karthus",
+   "cost": 4,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Karthus",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Executioner"
+   ]
+  },
+  {
+   "apiName": "TFT10_Poppy",
+   "cost": 4,
+   "musicTraits": [
+    "Emo"
+   ],
+   "name": "Poppy",
+   "style": "emo",
+   "traits": [
+    "Emo",
+    "Mosher"
+   ]
+  },
+  {
+   "apiName": "TFT10_Thresh",
+   "cost": 4,
+   "musicTraits": [
+    "Country"
+   ],
+   "name": "Thresh",
+   "style": "country",
+   "traits": [
+    "Country",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_TwistedFate",
+   "cost": 4,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Twisted Fate",
+   "style": "funk",
+   "traits": [
+    "Disco",
+    "Dazzler"
+   ]
+  },
+  {
+   "apiName": "TFT10_Viego",
+   "cost": 4,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Viego",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Edgelord"
+   ]
+  },
+  {
+   "apiName": "TFT10_Zac",
+   "cost": 4,
+   "musicTraits": [
+    "EDM"
+   ],
+   "name": "Zac",
+   "style": "edm",
+   "traits": [
+    "EDM",
+    "Bruiser"
+   ]
+  },
+  {
+   "apiName": "TFT10_Zed",
+   "cost": 4,
+   "musicTraits": [
+    "EDM"
+   ],
+   "name": "Zed",
+   "style": "edm",
+   "traits": [
+    "EDM",
+    "Crowd Diver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Illaoi",
+   "cost": 5,
+   "musicTraits": [
+    "ILLBEATS"
+   ],
+   "name": "Illaoi",
+   "style": "illbeats",
+   "traits": [
+    "ILLBEATS",
+    "Bruiser"
+   ]
+  },
+  {
+   "apiName": "TFT10_Jhin",
+   "cost": 5,
+   "musicTraits": [
+    "Maestro"
+   ],
+   "name": "Jhin",
+   "style": "classical",
+   "traits": [
+    "Maestro",
+    "Big Shot"
+   ]
+  },
+  {
+   "apiName": "TFT10_Kayn",
+   "cost": 5,
+   "musicTraits": [
+    "Heartsteel"
+   ],
+   "name": "Kayn",
+   "style": "popband",
+   "traits": [
+    "Heartsteel",
+    "Edgelord",
+    "Wildcard"
+   ]
+  },
+  {
+   "apiName": "TFT10_Lucian",
+   "cost": 5,
+   "musicTraits": [
+    "Jazz"
+   ],
+   "name": "Lucian",
+   "style": "jazz",
+   "traits": [
+    "Jazz",
+    "Rapidfire"
+   ]
+  },
+  {
+   "apiName": "TFT10_Qiyana",
+   "cost": 5,
+   "musicTraits": [
+    "True Damage"
+   ],
+   "name": "Qiyana",
+   "style": "truedamage",
+   "traits": [
+    "True Damage",
+    "Crowd Diver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Sona",
+   "cost": 5,
+   "musicTraits": [
+    "Mixmaster"
+   ],
+   "name": "Sona",
+   "style": "dj",
+   "traits": [
+    "Mixmaster",
+    "Spellweaver"
+   ]
+  },
+  {
+   "apiName": "TFT10_Yorick",
+   "cost": 5,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Yorick",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill",
+    "Mosher",
+    "Guardian"
+   ]
+  },
+  {
+   "apiName": "TFT10_Ziggs",
+   "cost": 5,
+   "musicTraits": [
+    "Hyperpop"
+   ],
+   "name": "Ziggs",
+   "style": "hyperpop",
+   "traits": [
+    "Hyperpop",
+    "Dazzler"
+   ]
+  },
+  {
+   "apiName": "TFT10_DiscoBall",
+   "cost": 11,
+   "musicTraits": [
+    "Disco"
+   ],
+   "name": "Disco Ball",
+   "style": "funk",
+   "traits": [
+    "Disco"
+   ]
+  },
+  {
+   "apiName": "TFT10_YorickGhoulMelee",
+   "cost": 11,
+   "musicTraits": [
+    "Pentakill"
+   ],
+   "name": "Yorick",
+   "style": "pentakill",
+   "traits": [
+    "Pentakill"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,423 @@
+{
+ "layers": [
+  "drums",
+  "chords",
+  "top"
+ ],
+ "patch": "13.24",
+ "priority": [
+  "kda",
+  "pentakill",
+  "truedamage",
+  "popband",
+  "illbeats",
+  "8bit",
+  "country",
+  "edm",
+  "emo",
+  "funk",
+  "punkrock",
+  "hyperpop",
+  "jazz",
+  "classical",
+  "dj",
+  "none"
+ ],
+ "set": 10,
+ "sources": [
+  "Riot design interview on the Set 10 music system (3 layers, unit count driven)",
+  "TFTSet10 / Map22 music data, patch 13.24: Set_Switch_set10_<style>_<layer>",
+  "CommunityDragon TFT 13.24 set data: trait api names"
+ ],
+ "specialRules": {
+  "classicalAlwaysOccupiesALayer": true,
+  "comment": "The design interview states a solo trait such as Maestro (Jhin) always occupies one of the three layers."
+ },
+ "stems": {
+  "8bit": {
+   "chords": {
+    "early": "8bit_early_main",
+    "late": "8bit_late_main"
+   },
+   "drums": {
+    "early": "8bit_early_drums",
+    "late": "8bit_late_drums"
+   }
+  },
+  "classical": {
+   "top": {
+    "early": "maestro_early",
+    "late": "maestro_late"
+   }
+  },
+  "country": {
+   "chords": {
+    "early": "country_early_main",
+    "late": "country_late_main"
+   },
+   "drums": {
+    "early": "country_early_drums",
+    "late": "country_late_drums"
+   }
+  },
+  "dj": {
+   "drums": {
+    "early": "mixmaster_early",
+    "late": "mixmaster_late"
+   }
+  },
+  "edm": {
+   "chords": {
+    "early": "edm_early_main",
+    "late": "edm_late_main"
+   },
+   "drums": {
+    "early": "edm_early_drums",
+    "late": "edm_late_drums"
+   }
+  },
+  "emo": {
+   "chords": {
+    "early": "emo_early_main",
+    "late": "emo_late_main"
+   },
+   "drums": {
+    "early": "emo_early_drums",
+    "late": "emo_late_drums"
+   }
+  },
+  "funk": {
+   "chords": {
+    "early": "disco_early_main",
+    "late": "disco_late_main"
+   },
+   "drums": {
+    "early": "disco_early_drums",
+    "late": "disco_late_drums"
+   }
+  },
+  "hyperpop": {
+   "top": {
+    "early": "hyperpop_early",
+    "late": "hyperpop_late"
+   }
+  },
+  "illbeats": {
+   "drums": {
+    "early": "illbeats_early",
+    "late": "illbeats_late"
+   },
+   "top": {
+    "early": "illbeats_early",
+    "late": "illbeats_late"
+   }
+  },
+  "jazz": {
+   "top": {
+    "early": "jazz_early_main",
+    "late": "jazz_late_main"
+   }
+  },
+  "kda": {
+   "chords": {
+    "early": "kda_early_main",
+    "late": "kda_late_main"
+   },
+   "drums": {
+    "early": "kda_early_drums",
+    "late": "kda_late_drums"
+   },
+   "top": {
+    "early": "kda_early_secondary",
+    "late": "kda_late_secondary"
+   }
+  },
+  "none": {
+   "chords": {
+    "early": "piano_early",
+    "late": "piano_late"
+   },
+   "drums": {
+    "early": "piano_early",
+    "late": "piano_late"
+   },
+   "top": {
+    "early": "piano_early",
+    "late": "piano_late"
+   }
+  },
+  "pentakill": {
+   "chords": {
+    "early": "pentakill_early_main",
+    "late": "pentakill_late_main"
+   },
+   "drums": {
+    "early": "pentakill_early_drums",
+    "late": "pentakill_late_drums"
+   },
+   "top": {
+    "early": "pentakill_early_secondary",
+    "late": "pentakill_late_secondary"
+   }
+  },
+  "popband": {
+   "chords": {
+    "early": "heartsteel_early_main",
+    "late": "heartsteel_late_main"
+   },
+   "drums": {
+    "early": "heartsteel_early_drums",
+    "late": "heartsteel_late_drums"
+   },
+   "top": {
+    "early": "heartsteel_early_secondary",
+    "late": "heartsteel_late_secondary"
+   }
+  },
+  "punkrock": {
+   "chords": {
+    "early": "punk_early_main",
+    "late": "punk_late_main"
+   },
+   "drums": {
+    "early": "punk_early_drums",
+    "late": "punk_late_drums"
+   }
+  },
+  "truedamage": {
+   "chords": {
+    "early": "truedamage_early_main",
+    "late": "truedamage_late_main"
+   },
+   "drums": {
+    "early": "truedamage_early_drums",
+    "late": "truedamage_late_drums"
+   },
+   "top": {
+    "early": "truedamage_early_secondary",
+    "late": "truedamage_late_secondary"
+   }
+  }
+ },
+ "styles": {
+  "8bit": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "8Bit"
+  },
+  "classical": {
+   "layers": [
+    "top"
+   ],
+   "traitApiSuffix": "Classical"
+  },
+  "country": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "Country"
+  },
+  "dj": {
+   "layers": [
+    "drums"
+   ],
+   "traitApiSuffix": "DJ"
+  },
+  "edm": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "EDM"
+  },
+  "emo": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "Emo"
+  },
+  "funk": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "Funk"
+  },
+  "hyperpop": {
+   "layers": [
+    "top"
+   ],
+   "traitApiSuffix": "Hyperpop"
+  },
+  "illbeats": {
+   "layers": [
+    "drums",
+    "top"
+   ],
+   "traitApiSuffix": "IllBeats"
+  },
+  "jazz": {
+   "layers": [
+    "top"
+   ],
+   "traitApiSuffix": "Jazz"
+  },
+  "kda": {
+   "layers": [
+    "drums",
+    "chords",
+    "top"
+   ],
+   "traitApiSuffix": "KDA"
+  },
+  "none": {
+   "layers": [
+    "drums",
+    "chords",
+    "top"
+   ],
+   "traitApiSuffix": null
+  },
+  "pentakill": {
+   "layers": [
+    "drums",
+    "chords",
+    "top"
+   ],
+   "traitApiSuffix": "Pentakill"
+  },
+  "popband": {
+   "layers": [
+    "drums",
+    "chords",
+    "top"
+   ],
+   "traitApiSuffix": "PopBand"
+  },
+  "punkrock": {
+   "layers": [
+    "drums",
+    "chords"
+   ],
+   "traitApiSuffix": "PunkRock"
+  },
+  "truedamage": {
+   "layers": [
+    "drums",
+    "chords",
+    "top"
+   ],
+   "traitApiSuffix": "TrueDamage"
+  }
+ },
+ "traitThresholds": {
+  "8-bit": [
+   2,
+   4,
+   6
+  ],
+  "Country": [
+   3,
+   5,
+   7
+  ],
+  "Disco": [
+   3,
+   4,
+   5,
+   6
+  ],
+  "EDM": [
+   2,
+   3,
+   4,
+   5
+  ],
+  "Emo": [
+   2,
+   4,
+   6
+  ],
+  "Heartsteel": [
+   3,
+   5,
+   7,
+   10
+  ],
+  "Hyperpop": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "ILLBEATS": [
+   1
+  ],
+  "Jazz": [
+   2,
+   3,
+   4
+  ],
+  "K/DA": [
+   3,
+   5,
+   7,
+   10
+  ],
+  "Maestro": [
+   1
+  ],
+  "Mixmaster": [
+   1
+  ],
+  "Pentakill": [
+   3,
+   5,
+   7,
+   10
+  ],
+  "Punk": [
+   2,
+   4,
+   6
+  ],
+  "True Damage": [
+   2,
+   4,
+   6,
+   9
+  ]
+ },
+ "traitToStyle": {
+  "Set10_8Bit": "8bit",
+  "Set10_Classical": "classical",
+  "Set10_Country": "country",
+  "Set10_DJ": "dj",
+  "Set10_EDM": "edm",
+  "Set10_Emo": "emo",
+  "Set10_Funk": "funk",
+  "Set10_Hyperpop": "hyperpop",
+  "Set10_IllBeats": "illbeats",
+  "Set10_Jazz": "jazz",
+  "Set10_KDA": "kda",
+  "Set10_Pentakill": "pentakill",
+  "Set10_PopBand": "popband",
+  "Set10_PunkRock": "punkrock",
+  "Set10_TrueDamage": "truedamage"
+ },
+ "weights": {
+  "comment": "Reconstructed from the official design interview plus shipped data: each unit adds its style's weight, trait breakpoints add a bonus (K/DA and other complex traits grow with tier), then every layer picks the heaviest style that can provide it.",
+  "perUnit": 1,
+  "tierBonus": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ]
+ }
+}
