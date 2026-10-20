@@ -121,6 +121,51 @@ def parse_tracks(text: str) -> dict[int, dict]:
     return tracks
 
 
+def parse_segments(text: str) -> dict[int, dict]:
+    segments = {}
+    for body in blocks(text, "0x0A"):
+        ident = re.search(r"ulID = (\d+)", body)
+        if not ident:
+            continue
+        def number(name: str) -> float | None:
+            match = re.search(rf"{name} = ([-\d.]+)", body)
+            return float(match.group(1)) if match else None
+
+        markers = {}
+        for marker in re.findall(
+            r"AkMusicMarkerWwise\[\d+\](.*?)(?=AkMusicMarkerWwise\[|\Z)", body, re.S
+        ):
+            marker_id = re.search(r"id = (\d+)", marker)
+            position = re.search(r"fPosition = ([-\d.]+)", marker)
+            if marker_id and position:
+                markers[int(marker_id.group(1))] = float(position.group(1))
+        segments[int(ident.group(1))] = {
+            "durationMs": number("fDuration"),
+            "tempo": number("fTempo"),
+            "gridMs": number("fGridPeriod"),
+            "markers": markers,
+        }
+    return segments
+
+
+def parse_playlists(text: str) -> dict[int, dict]:
+    playlists = {}
+    for body in blocks(text, "0x0D"):
+        ident = re.search(r"ulID = (\d+)", body)
+        if not ident:
+            continue
+        def number(name: str):
+            match = re.search(rf"{name} = (-?\d+)", body)
+            return int(match.group(1)) if match else None
+
+        playlists[int(ident.group(1))] = {
+            "loopMin": number("LoopMin"),
+            "loopMax": number("LoopMax"),
+            "children": [int(x) for x in re.findall(r"ulChildID = (\d+)", body)],
+        }
+    return playlists
+
+
 def switch_events(prop: bytes) -> list[str]:
     names = set()
     for raw in re.findall(rb"[\x20-\x7e]{6,200}", prop):
@@ -150,7 +195,10 @@ def main() -> int:
                 switches[name] = (action["group"], action["value"])
                 break
 
-    timeline: dict[str, dict] = {}
+    segments = parse_segments(text)
+    playlists = parse_playlists(text)
+
+    songs: dict[str, dict] = {}
     for song, info in SONGS.items():
         table: dict[str, dict] = {}
         for track_id in info["tracks"]:
@@ -172,11 +220,45 @@ def main() -> int:
                     row[layer] = {"silent": True, "reason": f"no clip {clip}"}
                 else:
                     row[layer] = {"silent": False, **item}
-        timeline[song] = {"duration": info["duration"], "styles": table}
+
+        segment = segments.get(info["segment"], {})
+        markers = segment.get("markers", {})
+        entry = markers.get(43573010)
+        exit_marker = markers.get(1539036744)
+        playlist_id = next(
+            (pid for pid, playlist in playlists.items() if info["segment"] in playlist["children"]),
+            None,
+        )
+        playlist = playlists.get(playlist_id, {})
+        songs[song] = {
+            "segment": info["segment"],
+            "playlist": playlist_id,
+            "durationMs": segment.get("durationMs"),
+            "entryMs": entry,
+            "exitMs": exit_marker,
+            "loopMs": exit_marker,
+            "loopMin": playlist.get("loopMin"),
+            "loopMax": playlist.get("loopMax"),
+            "tempo": segment.get("tempo"),
+            "gridMs": segment.get("gridMs"),
+            "markers": markers,
+            "styles": table,
+        }
+
+    payload = {
+        "songs": songs,
+        "switches": {
+            name: {"group": group, "value": value}
+            for name, (group, value) in sorted(switches.items())
+        },
+    }
 
     print(f"switch names: {len(switches)}")
-    for song, info in timeline.items():
-        print(f"\n{song} (segment {SONGS[song]['segment']}, {info['duration']:.0f} ms)")
+    for song, info in songs.items():
+        print(
+            f"\n{song} segment={info['segment']} dur={info['durationMs']:.0f} "
+            f"entry={info['entryMs']} exit/loop={info['exitMs']} tempo={info['tempo']}"
+        )
         for style in sorted(info["styles"]):
             parts = []
             for layer in ("drums", "chords", "top"):
@@ -189,8 +271,31 @@ def main() -> int:
                     parts.append(f"{layer}: src={item['source']} play={item['playAt']}")
             print(f"  {style:<11} " + " | ".join(parts))
 
+    if "--verify" in sys.argv:
+        problems = []
+        if len(switches) != 33:
+            problems.append(f"switch count {len(switches)} != 33")
+        for song, info in songs.items():
+            if len(info["styles"]) != 16:
+                problems.append(f"{song} has {len(info['styles'])} styles, expected 16")
+        expected = {"act1": 200514.291666667, "act23": 165333.333333333, "draft": 165333.333333333}
+        for song, value in expected.items():
+            actual = songs[song]["exitMs"]
+            if actual is None or abs(actual - value) > 0.01:
+                problems.append(f"{song} exit {actual} != {value}")
+        for song in ("act1", "act23", "draft"):
+            for layer in ("drums", "top"):
+                if not songs[song]["styles"]["none"][layer].get("silent"):
+                    problems.append(f"{song} none {layer} should be silent")
+        if problems:
+            print("\nVERIFY FAIL")
+            for problem in problems:
+                print("  -", problem)
+            return 1
+        print("\nVERIFY PASS")
+
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(timeline, indent=1, sort_keys=True), encoding="utf-8")
+    out.write_text(json.dumps(payload, indent=1, sort_keys=True), encoding="utf-8")
     print(f"\nwrote {out}")
     return 0
 
