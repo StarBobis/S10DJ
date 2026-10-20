@@ -67,6 +67,8 @@ export interface Assignment {
   weight: number;
   spotlight?: boolean;
   manual?: boolean;
+  /** Held by the radio station's combo for as long as that station is on air. */
+  pinned?: boolean;
 }
 
 export type Plan = Record<Layer, Assignment>;

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from '../i18n';
+import { useI18n, type MessageKey } from '../i18n';
+import { LAYERS, type Layer } from '../core/types';
+import { styleColor } from '../core/rules';
+import { comboIdStyles, comboStyles } from '../core/combos';
 import {
   artCount,
+  comboById,
   missingStems,
   runStemTest,
   setEra,
@@ -12,9 +16,17 @@ import {
   stemsAvailable,
   useDesk,
 } from '../stores/desk';
+import { dislikedCombos, restoreAllCombos, restoreCombo } from '../stores/likes';
+import BrokenHeart from './BrokenHeart.vue';
 
 const state = useDesk();
 const { t, styleName } = useI18n();
+
+const LAYER_LABEL: Record<Layer, MessageKey> = {
+  drums: 'layer.drums',
+  chords: 'layer.chords',
+  top: 'layer.top',
+};
 
 const missing = computed(() => missingStems());
 const stemCount = computed(() => stemsAvailable());
@@ -23,6 +35,21 @@ const switchCount = computed(() =>
 );
 const soloNames = computed(() =>
   ['classical', 'dj', 'illbeats'].map((style) => styleName(style)).join(' / '),
+);
+
+/** Banned combos in the order they were banned, with their live layer plan. */
+const dislikedItems = computed(() =>
+  dislikedCombos().map((id) => {
+    const combo = comboById(id);
+    const styles = combo ? comboStyles(combo) : comboIdStyles(id);
+    return {
+      id,
+      label: styles.map((style) => styleName(style)).join(' + '),
+      layers: combo
+        ? LAYERS.map((layer) => ({ layer, style: combo.layers[layer] }))
+        : [],
+    };
+  }),
 );
 
 function onLanguage(event: Event) {
@@ -78,6 +105,46 @@ function onMaster(event: Event) {
         <input type="range" min="0" max="1" step="0.01" :value="state.settings.master" @input="onMaster" />
       </label>
     </div>
+
+    <section class="dislikes">
+      <div class="dislikes-head">
+        <div>
+          <h3>
+            {{ t('settings.dislikes') }}
+            <span class="dislike-count">{{ dislikedItems.length }}</span>
+          </h3>
+          <p class="panel-sub">{{ t('settings.dislikesHint') }}</p>
+        </div>
+        <button
+          class="ghost small"
+          :disabled="!dislikedItems.length"
+          @click="restoreAllCombos()"
+        >
+          {{ t('settings.restoreAll') }}
+        </button>
+      </div>
+
+      <ul v-if="dislikedItems.length" class="dislike-list">
+        <li v-for="item in dislikedItems" :key="item.id" class="dislike-row">
+          <span class="dislike-glyph"><BrokenHeart /></span>
+          <span class="dislike-label" :title="item.id">{{ item.label }}</span>
+          <span class="dislike-layers">
+            <i
+              v-for="entry in item.layers"
+              :key="entry.layer"
+              :style="{ '--style': styleColor(entry.style) }"
+              :title="styleName(entry.style)"
+            >
+              {{ t(LAYER_LABEL[entry.layer]) }}
+            </i>
+          </span>
+          <button class="ghost small" @click="restoreCombo(item.id)">
+            {{ t('settings.restore') }}
+          </button>
+        </li>
+      </ul>
+      <p v-else class="hint">{{ t('settings.noDislikes') }}</p>
+    </section>
 
     <section class="diagnostics">
       <div class="diagnostics-head">

@@ -63,10 +63,23 @@ drop.
 
 ## Radio mode
 
-`startRadio()` snapshots board, selection, era, mix mode and layer settings, then
-clears overrides and enables all layers. `radioBeat()` picks a style from a
-shuffled queue, builds a 6-10 unit board around that style, selects a featured
-champion (which changes the global wallpaper), and may flip the era.
+**A station is a style combo, not a single style.** `startRadio()` snapshots
+board, selection, era, mix mode and layer settings, clears overrides and enables
+all layers, then fills `radio.queue` with combo ids from `radioQueue()`:
+`styleCombos` minus every banned id, liked combos first, each group shuffled.
+`radioBeat()` shifts the next combo, builds a 6-10 unit board themed on that
+combo's styles (`radioBoard(combo.styles)`), selects a featured champion (which
+changes the global wallpaper), and may flip the era. The station label is the
+combo label plus the drums style's fake FM dial position.
+
+**The station plan is pinned.** `recompute()` ends with a `radioCombo` override:
+while a station is on air every layer is `{ style, weight, pinned: true }`. Do not
+remove it - the random board alone cannot guarantee the announced combo (a solo
+act with weight > 0 always grabs a layer, unrelated styles can out-weigh a combo
+style), and the heart/broken-heart buttons must act on the exact mix the user
+hears. `MixerPanel` shows a `radio` badge on pinned channels. Leaving radio mode
+(`stopRadio`) always calls `recompute()` so the pin is released, even when it is
+not restoring the snapshot.
 
 **One station = one song, measured in audio time.** A 250 ms ticker compares
 `mixer.positionSeconds` against `mixer.songSeconds()` (the shortest active stem,
@@ -91,6 +104,44 @@ the radio cannot fight the user.
 computed when the beat fires; `restart()` without an argument is the transport
 realign button. In `applyPlan` a hard start also re-records `startedAt` after
 the stem loads, otherwise the first song's countdown drifts by the decode time.
+
+## Radio likes and bans
+
+`src/stores/likes.ts` owns one localStorage record
+(`set10-desk-likes-v1`: `styles`, `combos`, `disliked`). `disliked` is an
+append-to-front array of combo ids, so the Settings list shows the newest ban
+first and the radio can filter with `isComboDisliked`. A like and a dislike are
+mutually exclusive in both directions.
+
+- `likeStation()` toggles `toggleComboLike(radio.combo)`. A cycle holds all 458
+  combos, so ordering the queue by likes would mean a heart is never heard
+  again; instead `nextRadioCombo()` promotes a random liked combo over the cycle
+  with `LIKED_PROMOTION` (25%). Likes also rank higher in Style Lab.
+- `dislikeStation()` calls `dislikeCombo(id)`, drops the id from the pending
+  queue and calls `radioBeat()` so the banned station leaves the air at once.
+- `radioPool()` is `styleCombos` minus banned ids. When it is empty the radio
+  refuses to start, `radioBeat()` stops the radio and `notice.radioEmpty` tells
+  the user to restore a combo in Settings. Never fall back to playing banned
+  combos.
+- **Settings > Radio dislikes** (`SettingsPage.vue`) lists each banned combo with
+  its three-layer split and per-row restore, plus restore-all. Unknown ids from
+  an older rules version still render (label from `comboIdStyles`) and stay
+  removable.
+- `StyleLab.vue` sorts banned combos to the bottom, dims them and adds a
+  `disliked` badge; they can still be applied manually.
+
+The station label sits on the second line of `.radio-copy` while the countdown
+is next to `ON AIR` (`ON AIR 3:19`), so a long combo name can ellipsize without
+hiding the remaining time. While the radio is live `.plan-pills` are hidden: the
+station name is the combo and the mixer already shows the layer split, so the
+pills would only steal the width the station needs.
+
+The heart and broken heart are the two `.radio-vote-btn`s after `.radio-skip`.
+The broken heart is `BrokenHeart.vue`, a monochrome **CSS split heart**: two
+`&#9829;` glyphs clipped into halves and nudged apart. Do not swap it for a
+color emoji (clashes with the neon theme) and do not clip at 50% with rotation
+(the lobes look like petals) - the polygon pair in `styles.css` is tuned to read
+as a crack at 13 px.
 
 ## Champion pool grouping
 
@@ -269,10 +320,21 @@ Radio playback is cheap to assert without listening: every station start and
 every aligned restart logs `[desk] hard start: N stems at offset 0 (song Xs)`.
 A station must rotate after `X` seconds - in the early era that is ~198 s, so a
 rotation at 165 s means a wall-clock timer crept back in. While paused the
-countdown in `.radio-copy em` must stay frozen. A loop-length change on a live
+countdown in `.radio-copy .radio-time` must stay frozen (it moved off `em` when
+the station became a combo). A loop-length change on a live
 mix logs `[desk] re-seated N voices at Ys`. `bun tools/radio-cdp-test.mjs` runs all of this against a headless Chrome on
 port 9222 (about four minutes, the rotation watch dominates) and saves
-`tmp/radio-fixed.png`.
+`tmp/radio-fixed.png`. `bun tools/radio-vote-cdp-test.mjs` covers the combo
+station, the pinned plan, both vote buttons, the Settings ban list and restore
+(about half a minute).
+
+Reading state from the page without a debug hook: the likes record is plain
+localStorage (`set10-desk-likes-v1`), so `JSON.parse(localStorage.getItem(...))`
+shows the like/ban lists. To prove the radio refuses an empty pool, seed
+`disliked` with every combo id (rebuild them from `data/music_rules.json` with
+the `buildStyleCombos` rules) and check that clicking `.radio-button` leaves the
+control un-lit and raises the toast. The Style Lab combo count (`458`) is a cheap
+oracle for the id list.
 
 For a packaged check, build with `tauri build --no-bundle`, launch the exe with
 `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`, and repeat

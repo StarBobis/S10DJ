@@ -101,3 +101,26 @@ export function buildStyleCombos(styleLayers: Record<string, Layer[]>): StyleCom
 export function defaultCombo(combos: StyleCombo[]): StyleCombo | null {
   return combos.find((combo) => combo.id === DEFAULT_COMBO_ID) ?? combos[0] ?? null;
 }
+
+/** The styles of a combo, deduplicated and ordered by layer (drums, chords, top). */
+export function comboStyles(combo: StyleCombo): string[] {
+  const seen = new Set<string>();
+  const styles: string[] = [];
+  for (const layer of LAYERS) {
+    const style = combo.layers[layer];
+    if (!style || seen.has(style)) continue;
+    seen.add(style);
+    styles.push(style);
+  }
+  return styles;
+}
+
+/** Human readable label such as "Jazz + True Damage". */
+export function comboLabel(combo: StyleCombo, name: (style: string) => string): string {
+  return comboStyles(combo).map(name).join(' + ');
+}
+
+/** Styles of a stored combo id, used when the id is not in the current set. */
+export function comboIdStyles(id: string): string[] {
+  return id.split('+').filter(Boolean);
+}

@@ -87,10 +87,11 @@ async function waitFor(expression, label, timeout = 40000) {
 const radio = () => evaluate(`(() => {
   const copy = document.querySelector('.radio-copy em');
   const meter = document.querySelector('.radio-meter i');
-  const label = copy ? copy.textContent.trim() : null;
+  const time = document.querySelector('.radio-copy .radio-time');
+  const station = copy ? copy.textContent.trim() : null;
   return {
-    label,
-    station: label ? label.split(' - ')[0].trim() : null,
+    label: station ? station + ' - ' + (time ? time.textContent.trim() : '') : null,
+    station,
     meter: meter ? meter.style.width : null,
     status: document.querySelector('.transport-status')?.textContent.trim() ?? null,
     playing: document.querySelector('.transport-status')?.classList.contains('playing') ?? false,
@@ -126,7 +127,11 @@ await sleep(1500);
 
 let station = await radio();
 let hardStart = lastLog('hard start');
-check('radio on air', Boolean(station.label?.includes('FM')), station.label);
+check(
+  'radio on air',
+  Boolean(station.station && / - \d+\.\d$/.test(station.station)),
+  station.label,
+);
 check(
   'station starts as one aligned hard start',
   Boolean(hardStart?.text.includes('offset 0')),

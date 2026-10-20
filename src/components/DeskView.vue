@@ -20,6 +20,7 @@ const NOTICE_KEY: Record<Exclude<NoticeCode, ''>, MessageKey> = {
   lineupExported: 'lineup.exported',
   lineupImported: 'lineup.imported',
   lineupFailed: 'lineup.failed',
+  radioEmpty: 'notice.radioEmpty',
 };
 
 const noticeText = computed(() =>

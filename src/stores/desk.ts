@@ -23,6 +23,12 @@ import {
 import { buildStyleCombos, defaultCombo, type StyleCombo } from '../core/combos';
 import { heroArtCount } from '../core/art';
 import {
+  dislikeCombo,
+  isComboDisliked,
+  isComboLiked,
+  toggleComboLike,
+} from './likes';
+import {
   BOARD_COLUMNS,
   BOARD_SLOTS,
   MAX_BOARD_UNITS,
@@ -48,6 +54,7 @@ export type NoticeCode =
   | 'lineupExported'
   | 'lineupImported'
   | 'lineupFailed'
+  | 'radioEmpty'
   | '';
 
 /** How often the radio compares the audio position against the song length. */
@@ -55,10 +62,12 @@ const RADIO_TICK_MS = 250;
 
 interface RadioState {
   enabled: boolean;
-  station: string;
+  /** Combo id currently on air, '' while the radio is off. */
+  combo: string;
   beat: number;
   progress: number;
   remaining: number;
+  /** Pending combo ids of the current shuffle cycle. */
   queue: string[];
 }
 
@@ -83,7 +92,7 @@ const state = reactive({
   testing: null as { running: boolean; ok: string[]; failed: string[] } | null,
   radio: {
     enabled: false,
-    station: 'none',
+    combo: '',
     beat: 0,
     progress: 0,
     remaining: 0,
@@ -169,6 +178,21 @@ export const styleCombos = computed<StyleCombo[]>(() => {
   if (!state.rules) return [];
   return buildStyleCombos(styleLayers());
 });
+
+const comboIndex = computed<Map<string, StyleCombo>>(() => {
+  const map = new Map<string, StyleCombo>();
+  for (const combo of styleCombos.value) map.set(combo.id, combo);
+  return map;
+});
+
+export function comboById(id: string): StyleCombo | null {
+  return comboIndex.value.get(id) ?? null;
+}
+
+/** The combo on air, or null while the radio is off. */
+export const radioCombo = computed<StyleCombo | null>(() =>
+  state.radio.enabled ? comboById(state.radio.combo) : null,
+);
 
 /** Stem file for a style/layer/era, falling back to the other era. */
 export function fileFor(style: string, layer: Layer, era: Era): string | null {
@@ -302,6 +326,16 @@ function recompute() {
   });
   state.plan = plan;
   state.weights = weights;
+  // A radio station is one combo, so its three layers are pinned for as long as
+  // it is on air. Otherwise the random board could drift the mix away from the
+  // combo the station announces (and that the heart/ban acts on).
+  const station = radioCombo.value;
+  if (station) {
+    for (const layer of LAYERS) {
+      const style = station.layers[layer];
+      state.plan[layer] = { style, weight: weights[style] ?? 0, pinned: true };
+    }
+  }
 }
 
 /* ---------- board editing ---------- */
@@ -464,18 +498,51 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-function radioStyles(): string[] {
-  return Object.keys(state.rules?.styles ?? {}).filter((style) => style !== 'none');
+/** Combos the radio may pick: every valid combo the user has not banned. */
+function radioPool(): StyleCombo[] {
+  return styleCombos.value.filter((combo) => !isComboDisliked(combo.id));
 }
 
-function nextRadioStyle(): string {
-  if (!state.radio.queue.length) state.radio.queue = shuffle(radioStyles());
-  return state.radio.queue.shift() ?? 'none';
+/** How often a liked combo is promoted ahead of the shuffle cycle. */
+const LIKED_PROMOTION = 0.25;
+
+/**
+ * One shuffle cycle over every eligible combo. `avoid` keeps a refill from
+ * repeating the station that just ended.
+ */
+function radioQueue(avoid: string | null): string[] {
+  const queue = shuffle(radioPool()).map((combo) => combo.id);
+  if (avoid && queue.length > 1 && queue[0] === avoid) {
+    const swap = 1 + Math.floor(Math.random() * (queue.length - 1));
+    [queue[0], queue[swap]] = [queue[swap], queue[0]];
+  }
+  return queue;
 }
 
-function radioBoard(style: string): BoardUnit[] {
-  const themed = shuffle(state.units.filter((unit) => unit.style === style));
-  const rest = shuffle(state.units.filter((unit) => unit.style !== style));
+function nextRadioCombo(): string | null {
+  const current = state.radio.combo;
+  // A cycle holds 458 combos, so a heart would never be heard again if likes only
+  // reordered it. Promote a random liked combo over the cycle instead.
+  const liked = styleCombos.value.filter(
+    (combo) => isComboLiked(combo.id) && combo.id !== current && !isComboDisliked(combo.id),
+  );
+  if (liked.length && Math.random() < LIKED_PROMOTION) {
+    const pick = liked[Math.floor(Math.random() * liked.length)];
+    state.radio.queue = state.radio.queue.filter((id) => id !== pick.id);
+    return pick.id;
+  }
+  if (!state.radio.queue.length) {
+    if (!radioPool().length) return null;
+    state.radio.queue = radioQueue(current || null);
+  }
+  return state.radio.queue.shift() ?? null;
+}
+
+/** A random 6-10 unit board weighted towards the combo's styles. */
+function radioBoard(styles: string[]): BoardUnit[] {
+  const wanted = new Set(styles);
+  const themed = shuffle(state.units.filter((unit) => wanted.has(unit.style)));
+  const rest = shuffle(state.units.filter((unit) => !wanted.has(unit.style)));
   const count = Math.min(MAX_BOARD_UNITS, 6 + Math.floor(Math.random() * 5));
   const themedCount = Math.min(themed.length, Math.max(1, Math.ceil(count / 2)));
   const picks = themed.slice(0, themedCount);
@@ -516,16 +583,24 @@ function updateRadioProgress(): void {
 }
 
 function radioBeat(): void {
-  const style = nextRadioStyle();
-  state.radio.station = style;
+  const id = nextRadioCombo();
+  const combo = id ? comboById(id) : null;
+  if (!combo) {
+    stopRadio(true);
+    notify('radioEmpty');
+    return;
+  }
+  state.radio.combo = combo.id;
   state.radio.beat += 1;
   if (Math.random() < 0.28) {
     state.settings.era = state.settings.era === 'late' ? 'early' : 'late';
   }
-  const board = radioBoard(style);
+  const board = radioBoard(combo.styles);
   state.board = board;
   const featured =
-    board.find((entry) => unitByApi(entry.apiName)?.style === style) ?? board[0] ?? null;
+    board.find((entry) => combo.styles.includes(unitByApi(entry.apiName)?.style ?? '')) ??
+    board[0] ??
+    null;
   state.selected = featured?.apiName ?? null;
   state.preview = null;
   state.radio.progress = 0;
@@ -540,6 +615,10 @@ function radioBeat(): void {
 
 export function startRadio(): void {
   if (state.radio.enabled) return;
+  if (!radioPool().length) {
+    notify('radioEmpty');
+    return;
+  }
   radioBackup = {
     board: state.board.map((entry) => ({ ...entry })),
     selected: state.selected,
@@ -549,7 +628,8 @@ export function startRadio(): void {
   };
   state.radio.enabled = true;
   state.radio.beat = 0;
-  state.radio.queue = shuffle(radioStyles());
+  state.radio.combo = '';
+  state.radio.queue = radioQueue(null);
   state.settings.mixMode = 'board';
   for (const layer of LAYERS) {
     state.settings.layers[layer].enabled = true;
@@ -563,9 +643,10 @@ export function startRadio(): void {
 export function stopRadio(restore = true): void {
   if (!state.radio.enabled && !radioBackup) return;
   state.radio.enabled = false;
+  state.radio.combo = '';
+  state.radio.queue = [];
   state.radio.progress = 0;
   state.radio.remaining = 0;
-  state.radio.station = 'none';
   restartPending = false;
   if (radioTicker) {
     clearInterval(radioTicker);
@@ -577,9 +658,11 @@ export function stopRadio(restore = true): void {
     state.settings.era = radioBackup.era;
     state.settings.mixMode = radioBackup.mixMode;
     state.settings.layers = radioBackup.layers;
-    recompute();
   }
   radioBackup = null;
+  // Always recompute: leaving radio mode has to release the pinned station
+  // plan, otherwise the board and the mixer would disagree after a user edit.
+  recompute();
 }
 
 export function toggleRadio(): void {
@@ -589,6 +672,21 @@ export function toggleRadio(): void {
 
 export function nextStation(): void {
   if (!state.radio.enabled) return;
+  radioBeat();
+}
+
+/** Heart the station on air: it is promoted in the rotation from now on. */
+export function likeStation(): void {
+  if (!state.radio.enabled || !state.radio.combo) return;
+  toggleComboLike(state.radio.combo);
+}
+
+/** Ban the station on air: it never returns and the radio moves on at once. */
+export function dislikeStation(): void {
+  if (!state.radio.enabled || !state.radio.combo) return;
+  const banned = state.radio.combo;
+  dislikeCombo(banned);
+  state.radio.queue = state.radio.queue.filter((id) => id !== banned);
   radioBeat();
 }
 

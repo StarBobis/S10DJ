@@ -45,6 +45,7 @@ const channels = computed(() =>
       weight: state.plan[layer]?.weight ?? 0,
       spotlight: Boolean(state.plan[layer]?.spotlight),
       manual: Boolean(state.plan[layer]?.manual),
+      pinned: Boolean(state.plan[layer]?.pinned),
       stem: fileFor(style, layer, state.settings.era),
       setting: state.settings.layers[layer],
     };
@@ -152,6 +153,7 @@ function onMaster(event: Event) {
             {{ channel.stem ? `${channel.stem} - ${state.settings.era}` : t('mixer.noStem') }}
           </span>
           <span class="channel-flags">
+            <em v-if="channel.pinned">{{ t('mixer.radioPin') }}</em>
             <em v-if="channel.spotlight">{{ t('mixer.spotlight') }}</em>
             <em v-if="channel.manual">{{ t('mixer.manual') }}</em>
             <em v-if="!channel.setting.enabled">{{ t('mixer.muted') }}</em>

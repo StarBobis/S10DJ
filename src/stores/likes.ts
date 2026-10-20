@@ -5,20 +5,29 @@ const KEY = 'set10-desk-likes-v1';
 interface LikeState {
   styles: Record<string, number>;
   combos: Record<string, number>;
+  /** Combo ids the radio must never pick again, newest first. */
+  disliked: string[];
+}
+
+function emptyState(): LikeState {
+  return { styles: {}, combos: {}, disliked: [] };
 }
 
 function load(): LikeState {
-  if (typeof localStorage === 'undefined') return { styles: {}, combos: {} };
+  if (typeof localStorage === 'undefined') return emptyState();
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { styles: {}, combos: {} };
+    if (!raw) return emptyState();
     const parsed = JSON.parse(raw) as Partial<LikeState>;
     return {
       styles: parsed.styles ?? {},
       combos: parsed.combos ?? {},
+      disliked: Array.isArray(parsed.disliked)
+        ? parsed.disliked.filter((id): id is string => typeof id === 'string' && Boolean(id))
+        : [],
     };
   } catch {
-    return { styles: {}, combos: {} };
+    return emptyState();
   }
 }
 
@@ -55,8 +64,41 @@ export function toggleStyleLike(style: string): void {
 }
 
 export function toggleComboLike(id: string): void {
-  if (state.combos[id]) delete state.combos[id];
-  else state.combos[id] = 1;
+  if (state.combos[id]) {
+    delete state.combos[id];
+  } else {
+    state.combos[id] = 1;
+    // A like and a dislike are mutually exclusive: the heart undoes a banish.
+    state.disliked = state.disliked.filter((item) => item !== id);
+  }
+  save();
+}
+
+export function isComboDisliked(id: string): boolean {
+  return state.disliked.includes(id);
+}
+
+/** Banned combo ids, newest first. A copy, so callers cannot mutate the store. */
+export function dislikedCombos(): string[] {
+  return [...state.disliked];
+}
+
+export function dislikeCombo(id: string): void {
+  if (!id) return;
+  delete state.combos[id];
+  state.disliked = [id, ...state.disliked.filter((item) => item !== id)];
+  save();
+}
+
+export function restoreCombo(id: string): void {
+  if (!state.disliked.includes(id)) return;
+  state.disliked = state.disliked.filter((item) => item !== id);
+  save();
+}
+
+export function restoreAllCombos(): void {
+  if (!state.disliked.length) return;
+  state.disliked = [];
   save();
 }
 

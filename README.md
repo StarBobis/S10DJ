@@ -11,7 +11,7 @@
 ## 功能
 
 - **单页工作台**：英雄池、4x7 六边形棋盘、英雄 Spotlight、羁绊和三通道混音台同屏显示。
-- **电台模式**：自动生成主题阵容并开始播放，一首歌（约 **2:45–3:22**，取决于流派和时期）完整放完才切换流派和时期；可一键跳到下一台。
+- **电台模式**：自动生成主题阵容并开始播放，一个流派组合完整放完一首歌（约 **2:45–3:22**，取决于流派和时期）才切换组合与时期；可一键跳到下一台。爱心喜欢当前组合，心碎则以后不再随机到这个组合，设置页可管理不喜欢列表。
 - **流派工坊**：不需要上阵英雄，生成全部 **458 种可用 1-3 流派组合**；支持给单个流派和组合点赞，点赞会改变推荐排序，烬（戏命师）组合默认置顶。
 - **天选**：把某个英雄设为天选，使其一个羁绊 +1，对应游戏里推动羁绊层级的天选机制。
 - **阵容文件**：把棋盘、星级、天选、时期、混音模式和三层设置导出/导入为 JSON。
@@ -126,7 +126,7 @@ python tools/make_board_art.py     # stage.webp + grain.png
 4. 按 **播放**，然后实时切换层开关、推音量、手动指定流派。
 5. 把 **模式** 切到 **流派**（Style Lab），不上英雄也能编排；层机架、筛选和点赞都在那里。
 6. 用顶栏的两个箭头导出/导入阵容 JSON。
-7. **电台** 会自动生成阵容；`下一台` 立即切换，停止后会恢复你之前的棋盘和设置。
+7. **电台** 会自动生成阵容；`下一台` 立即切换，爱心喜欢当前组合，心碎以后不再随机到它，停止后会恢复你之前的棋盘和设置。被拉黑的组合在 **设置 > 不喜欢的组合** 里管理。
 
 阵容文件是可移植的 JSON：
 
@@ -157,7 +157,7 @@ Vue 3 + TypeScript (Vite)
   MixerPanel / Waveform / TransportBar / GlobalWallpaper
         |
   src/stores/desk.ts  (棋盘、方案、电台、阵容、传输控制)
-  src/stores/likes.ts (持久化的流派/组合排序)
+  src/stores/likes.ts (持久化的点赞与电台拉黑)
         |
   src/core/  data.ts  rules.ts  combos.ts  audio.ts  art.ts
         |
@@ -195,7 +195,7 @@ src/core/audio.ts            Web Audio 混音器 + 分析器
 src/core/data.ts             数据加载、Tauri 命令、分轨 URL
 src/core/art.ts              Banner / 壁纸 / 舞台查找
 src/stores/desk.ts           响应式工作台、电台、阵容
-src/stores/likes.ts          持久化的流派/组合点赞
+src/stores/likes.ts          持久化点赞与电台拉黑
 src/components/              英雄池、棋盘、Spotlight、羁绊、混音台、
                              StyleLab、PoolCard、Waveform、GlobalWallpaper
 src/assets/heroes/banner/    60 张云顶英雄 Banner
@@ -252,6 +252,6 @@ python tools/build_dataset.py
 ## 已知限制
 
 - 权重公式和平局规则是重建的；游戏内的选层代码是原生实现，并没有以可读规则表的形式随游戏发布。
-- 点赞保存在本机（没有账号或服务器），没有全局点赞数。
+- 点赞与电台拉黑都保存在本机（没有账号或服务器），没有全局点赞数。
 - 纹章、强化符文、传送门、阶段音乐和转场音效不在范围内。
 - 应用优先支持 Windows（Tauri/WebView2）；Web 开发服务器也可以在其他桌面平台运行。

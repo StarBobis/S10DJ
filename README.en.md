@@ -13,9 +13,11 @@ game does - or ignore champions entirely and compose the mix by hand.
 
 - **One desk page**: champion pool, 4x7 hex board, hero spotlight, traits and the
   three-channel mixing desk are visible together.
-- **Radio**: builds a themed board, starts playback and holds the station for one
-  full song (about 2:45-3:22, depending on style and era) before rotating styles
-  and eras. Skip with one button.
+- **Radio**: builds a themed board, starts playback and holds one style combo
+  for one full song (about 2:45-3:22, depending on style and era) before rotating
+  combos and eras. Skip with one button. The heart likes the combo on air; the
+  broken heart bans it so the radio never picks it again, and the Settings page
+  lists every banned combo for restoring.
 - **Style Lab**: no champions required. Generates all **458 usable 1-3 style
   combinations**, with per-style and per-combo likes that reorder the
   recommendations. Jhin combinations start at the top.
@@ -154,8 +156,10 @@ Restart Vite after regenerating art because `import.meta.glob` is evaluated once
 5. Switch **Mode** to **Style Lab** to compose without champions; the layer racks,
    filters and hearts are all there.
 6. Use the two arrows in the transport to export/import a lineup JSON.
-7. **Radio** auto-builds boards; `Next station` skips, stopping restores your
-   previous board and settings.
+7. **Radio** auto-builds boards; `Next station` skips, the heart likes the combo
+   on air, the broken heart bans it for good, and stopping restores your previous
+   board and settings. Banned combos are managed under **Settings > Radio
+   dislikes**.
 
 Lineup files are portable JSON:
 
@@ -186,7 +190,7 @@ Vue 3 + TypeScript (Vite)
   MixerPanel / Waveform / TransportBar / GlobalWallpaper
         |
   src/stores/desk.ts  (board, plan, radio, lineup, transport)
-  src/stores/likes.ts (persisted combo/style ranking)
+  src/stores/likes.ts (persisted likes and radio bans)
         |
   src/core/  data.ts  rules.ts  combos.ts  audio.ts  art.ts
         |
@@ -229,7 +233,7 @@ src/core/audio.ts            Web Audio mixer + analyser
 src/core/data.ts             data loading, Tauri commands, stem URLs
 src/core/art.ts              banner / wallpaper / stage lookup
 src/stores/desk.ts           reactive desk, radio, lineups
-src/stores/likes.ts          persisted style/combo likes
+src/stores/likes.ts          persisted likes and radio bans
 src/components/              pool, board, spotlight, traits, mixer, StyleLab,
                              PoolCard, Waveform, GlobalWallpaper
 src/assets/heroes/banner/    60 TFT champion banners
@@ -310,7 +314,7 @@ asset rights separately.
 
 - The weight formula and tie-break are reconstructed; the in-game selection code
   is native and not shipped as a readable rule table.
-- Likes are stored locally (no account or server); there is no global like count.
+- Likes and radio bans are stored locally (no account or server); there is no global like count.
 - Emblems, augments, portals, music phases and stingers are out of scope.
 - The app is Windows-first (Tauri/WebView2); the web dev server also runs on the
   other desktop platforms.

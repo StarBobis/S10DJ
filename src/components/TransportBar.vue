@@ -3,12 +3,16 @@ import { computed, ref } from 'vue';
 import { useI18n } from '../i18n';
 import { LAYERS, type Layer } from '../core/types';
 import { styleColor, styleFrequency } from '../core/rules';
+import { comboLabel } from '../core/combos';
 import {
+  dislikeStation,
   importLineup,
   lineupFileName,
   lineupSnapshot,
+  likeStation,
   nextStation,
   play,
+  radioCombo,
   realign,
   setEra,
   setLockLoop,
@@ -18,6 +22,8 @@ import {
   toggleRadio,
   useDesk,
 } from '../stores/desk';
+import { isComboLiked } from '../stores/likes';
+import BrokenHeart from './BrokenHeart.vue';
 
 const state = useDesk();
 const { t, styleName } = useI18n();
@@ -41,8 +47,20 @@ const planPills = computed(() =>
   }),
 );
 
-const radioStation = computed(
-  () => `${styleName(state.radio.station)} ${styleFrequency(state.radio.station)} FM`,
+const stationLabel = computed(() => {
+  const combo = radioCombo.value;
+  if (!combo) return t('radio.auto');
+  return comboLabel(combo, styleName);
+});
+
+const radioStation = computed(() => {
+  const combo = radioCombo.value;
+  if (!combo) return '';
+  // The dial number of the drums style is the station's position on the band.
+  return `${stationLabel.value} - ${styleFrequency(combo.layers.drums)}`;
+});
+const stationLiked = computed(() =>
+  radioCombo.value ? isComboLiked(radioCombo.value.id) : false,
 );
 const radioRemaining = computed(() => {
   const seconds = Math.max(0, state.radio.remaining);
@@ -152,10 +170,11 @@ async function importFile(event: Event) {
       >
         <span class="radio-glyph" aria-hidden="true">&#9673;</span>
         <span class="radio-copy">
-          <b>{{ state.radio.enabled ? t('radio.onAir') : t('radio.start') }}</b>
-          <em>
-            {{ state.radio.enabled ? `${radioStation}  -  ${radioRemaining}` : t('radio.auto') }}
-          </em>
+          <b>
+            {{ state.radio.enabled ? t('radio.onAir') : t('radio.start') }}
+            <i v-if="state.radio.enabled" class="radio-time">{{ radioRemaining }}</i>
+          </b>
+          <em>{{ state.radio.enabled ? radioStation : t('radio.auto') }}</em>
         </span>
         <span v-if="state.radio.enabled" class="radio-meter">
           <i :style="{ width: `${Math.round(state.radio.progress * 100)}%` }" />
@@ -169,6 +188,25 @@ async function importFile(event: Event) {
       >
         <span aria-hidden="true">&#9197;</span>
       </button>
+      <div v-if="state.radio.enabled" class="radio-vote">
+        <button
+          class="radio-vote-btn like"
+          :class="{ active: stationLiked }"
+          :title="stationLiked ? t('radio.likeRemove') : t('radio.like')"
+          :aria-label="stationLiked ? t('radio.likeRemove') : t('radio.like')"
+          @click.stop="likeStation()"
+        >
+          <span aria-hidden="true">{{ stationLiked ? '\u2665' : '\u2661' }}</span>
+        </button>
+        <button
+          class="radio-vote-btn dislike"
+          :title="t('radio.dislike')"
+          :aria-label="t('radio.dislike')"
+          @click.stop="dislikeStation()"
+        >
+          <BrokenHeart />
+        </button>
+      </div>
     </div>
 
     <div class="lineup-actions">

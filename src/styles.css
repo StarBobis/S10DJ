@@ -678,6 +678,12 @@ input[type='range'] {
   box-shadow: 0 0 34px rgba(255, 95, 162, 0.12), var(--shadow);
 }
 
+/* While on air the station name already is the combo, and the mixer shows the
+   layer split, so the duplicate plan pills give their width to the station. */
+.transport-bar.radio-live .plan-pills {
+  display: none;
+}
+
 .transport-actions {
   display: flex;
   gap: 6px;
@@ -798,10 +804,21 @@ button.play {
 }
 
 .radio-copy b {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
+}
+
+.radio-time {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--accent-2);
 }
 
 .radio-copy em {
@@ -811,7 +828,7 @@ button.play {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 165px;
+  max-width: 232px;
 }
 
 .radio-control.live .radio-copy em {
@@ -834,11 +851,90 @@ button.play {
   box-shadow: 0 0 8px var(--accent-2);
 }
 
-.radio-skip {
+button.ghost.radio-skip {
+  width: 30px;
   height: auto;
   border-radius: 0;
   border: none;
   border-left: 1px solid var(--border);
+}
+
+.radio-vote {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  border-left: 1px solid var(--border);
+}
+
+.radio-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.radio-vote-btn:hover {
+  border-color: rgba(255, 95, 162, 0.45);
+  background: rgba(255, 95, 162, 0.12);
+  color: var(--accent-2);
+}
+
+.radio-vote-btn.like.active {
+  border-color: rgba(255, 95, 162, 0.65);
+  background: rgba(255, 95, 162, 0.2);
+  color: var(--accent-2);
+  text-shadow: 0 0 8px rgba(255, 95, 162, 0.8);
+}
+
+.radio-vote-btn.dislike:hover {
+  border-color: rgba(255, 125, 146, 0.5);
+  background: rgba(255, 125, 146, 0.12);
+  color: var(--danger);
+}
+
+.radio-vote-btn.dislike.active {
+  border-color: rgba(255, 125, 146, 0.6);
+  background: rgba(255, 125, 146, 0.16);
+  color: var(--danger);
+}
+
+/* A cracked heart built from two clipped halves, so no emoji font is needed. */
+.heart-broken {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.heart-half {
+  position: absolute;
+  inset: 0;
+  font-style: normal;
+  line-height: 1;
+  text-align: center;
+}
+
+.heart-half.left {
+  clip-path: polygon(0 0, 47% 0, 43% 34%, 52% 50%, 44% 70%, 49% 100%, 0 100%);
+  transform: translate(-3%, 0);
+}
+
+.heart-half.right {
+  clip-path: polygon(53% 0, 100% 0, 100% 100%, 51% 100%, 56% 70%, 48% 50%, 57% 34%);
+  transform: translate(3%, 0);
 }
 
 .plan-pills {
@@ -2197,6 +2293,21 @@ button.play {
   box-shadow: inset 0 0 0 1px rgba(255, 95, 162, 0.28);
 }
 
+.lab-combo.disliked {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.lab-combo.disliked:hover {
+  opacity: 1;
+}
+
+.lab-combo-label .disliked-badge {
+  color: var(--danger);
+  border-color: rgba(255, 125, 146, 0.4);
+  letter-spacing: 0.4px;
+}
+
 .lab-combo-main {
   display: flex;
   flex-direction: column;
@@ -2608,6 +2719,94 @@ button.play {
   border-radius: 9px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.18);
+}
+
+.dislikes {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.dislikes-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dislikes-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.dislike-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 15px;
+  padding: 0 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 125, 146, 0.4);
+  background: rgba(255, 125, 146, 0.16);
+  color: var(--danger);
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.dislike-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.dislike-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 11.5px;
+}
+
+.dislike-row .dislike-glyph {
+  display: inline-flex;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.dislike-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dislike-layers {
+  display: flex;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.dislike-layers i {
+  font-style: normal;
+  font-size: 8.5px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--style);
 }
 
 .rules-audit {

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n, type MessageKey } from '../i18n';
 import { styleColor, styleFrequency, styleGlyph } from '../core/rules';
+import { comboLabel } from '../core/combos';
 import { LAYERS, type Layer } from '../core/types';
 import {
   applyCombo,
@@ -14,6 +15,7 @@ import {
 import {
   comboScore,
   comboLikes,
+  isComboDisliked,
   isComboLiked,
   isStyleLiked,
   styleLikes,
@@ -62,18 +64,6 @@ const currentPlan = computed(() =>
   }),
 );
 
-function comboLabel(combo: { layers: Record<Layer, string> }): string {
-  const seen = new Set<string>();
-  const labels: string[] = [];
-  for (const layer of LAYERS) {
-    const style = combo.layers[layer];
-    if (seen.has(style)) continue;
-    seen.add(style);
-    labels.push(styleName(style));
-  }
-  return labels.join(' + ');
-}
-
 function comboHasMaestro(combo: { styles: string[] }): boolean {
   return combo.styles.includes('classical');
 }
@@ -82,11 +72,15 @@ const rankedCombos = computed(() =>
   [...styleCombos.value]
     .map((combo) => ({
       combo,
-      label: comboLabel(combo),
+      label: comboLabel(combo, styleName),
       score: comboScore(combo),
       maestro: comboHasMaestro(combo),
+      disliked: isComboDisliked(combo.id),
     }))
     .sort((a, b) => {
+      // Banned combos fall to the bottom: the radio will never play them, so
+      // they should not sit on top of the recommendations either.
+      if (a.disliked !== b.disliked) return a.disliked ? 1 : -1;
       if (b.score !== a.score) return b.score - a.score;
       if (a.maestro !== b.maestro) return a.maestro ? -1 : 1;
       return a.label.localeCompare(b.label);
@@ -210,7 +204,11 @@ function styleLayers(style: string): Layer[] {
         v-for="item in visibleCombos"
         :key="item.combo.id"
         class="lab-combo"
-        :class="{ featured: item.maestro, liked: isComboLiked(item.combo.id) }"
+        :class="{
+          featured: item.maestro,
+          liked: isComboLiked(item.combo.id),
+          disliked: item.disliked,
+        }"
         role="button"
         tabindex="0"
         :title="item.label"
@@ -222,6 +220,7 @@ function styleLayers(style: string): Layer[] {
           <span class="lab-combo-label">
             {{ item.label }}
             <em v-if="item.maestro">{{ t('lab.maestroBadge') }}</em>
+            <em v-if="item.disliked" class="disliked-badge">{{ t('lab.disliked') }}</em>
           </span>
           <span class="lab-combo-layers">
             <i
