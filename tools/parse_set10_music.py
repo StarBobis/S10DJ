@@ -253,6 +253,53 @@ def main() -> int:
         },
     }
 
+    rules_path = None
+    engine_path = None
+    for index, arg in enumerate(sys.argv):
+        if arg == "--rules" and index + 1 < len(sys.argv):
+            rules_path = Path(sys.argv[index + 1])
+        if arg == "--engine" and index + 1 < len(sys.argv):
+            engine_path = Path(sys.argv[index + 1])
+
+    if rules_path:
+        rules = json.loads(rules_path.read_text(encoding="utf-8"))
+        durations_path = ROOT / "assets" / "audio_ogg" / "durations.json"
+        durations = (
+            json.loads(durations_path.read_text(encoding="utf-8"))
+            if durations_path.exists()
+            else {}
+        )
+        eras = {"act1": "early", "act23": "late", "draft": None}
+        print("\nmedia mapping (bank source duration vs rip duration):")
+        for song, info in songs.items():
+            era = eras[song]
+            deltas = []
+            for style, row in info["styles"].items():
+                for layer, item in row.items():
+                    if item.get("silent") or era is None:
+                        item["media"] = None
+                        continue
+                    mapping = rules.get("stems", {}).get(style, {}).get(layer, {})
+                    media = mapping.get(era) if isinstance(mapping, dict) else None
+                    item["media"] = media
+                    if media and media in durations:
+                        item["mediaDuration"] = durations[media]
+                        if item.get("dur"):
+                            deltas.append(item["dur"] / 1000 - durations[media])
+                    elif media:
+                        item["mediaDuration"] = None
+            if deltas:
+                worst = max(deltas, key=abs)
+                print(
+                    f"  {song}: {len(deltas)} mapped rips, delta {min(deltas):+.2f}.."
+                    f"{max(deltas):+.2f} s (worst {worst:+.2f} s)"
+                )
+
+    if engine_path:
+        engine_path.parent.mkdir(parents=True, exist_ok=True)
+        engine_path.write_text(json.dumps(payload, indent=1, sort_keys=True), encoding="utf-8")
+        print(f"wrote engine {engine_path}")
+
     print(f"switch names: {len(switches)}")
     for song, info in songs.items():
         print(

@@ -1,0 +1,1294 @@
+{
+ "songs": {
+  "act1": {
+   "durationMs": 212516.34180993852,
+   "entryMs": 8516.33883374839,
+   "exitMs": 200514.291666667,
+   "gridMs": 1000.0,
+   "loopMax": 0,
+   "loopMin": 0,
+   "loopMs": 200514.291666667,
+   "markers": {
+    "43573010": 8516.33883374839,
+    "1539036744": 200514.291666667
+   },
+   "playlist": 1058364540,
+   "segment": 549536093,
+   "styles": {
+    "8bit": {
+     "chords": {
+      "begin": 3.28581606368061e-12,
+      "clip": 5,
+      "dur": 193714.2857142857,
+      "end": 0.0,
+      "media": "8bit_early_main",
+      "mediaDuration": 199.78449,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 204999723
+     },
+     "drums": {
+      "begin": -4.88942220044919e-13,
+      "clip": 5,
+      "dur": 193714.2857142857,
+      "end": 0.0,
+      "media": "8bit_early_drums",
+      "mediaDuration": 200.388209,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 688396469
+     }
+    },
+    "classical": {
+     "top": {
+      "begin": 5.94835292133666e-12,
+      "clip": 4,
+      "dur": 195428.57142857142,
+      "end": -0.0,
+      "media": "maestro_early",
+      "mediaDuration": 200.573968,
+      "playAt": 6802.05311946267,
+      "silent": false,
+      "source": 226064013
+     }
+    },
+    "country": {
+     "chords": {
+      "begin": 1.27198251931304e-12,
+      "clip": 8,
+      "dur": 210857.14583333334,
+      "end": -5142.854166666667,
+      "media": "country_early_main",
+      "mediaDuration": 210.512109,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 55637407
+     },
+     "drums": {
+      "begin": 1.69987357523382e-11,
+      "clip": 8,
+      "dur": 210857.14583333334,
+      "end": -0.0,
+      "media": "country_early_drums",
+      "mediaDuration": 207.307755,
+      "playAt": 1659.19597660552,
+      "silent": false,
+      "source": 587103856
+     }
+    },
+    "dj": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 11,
+      "dur": 192428.57142857142,
+      "end": -0.0,
+      "media": "mixmaster_early",
+      "mediaDuration": 198.832472,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 1019833879
+     }
+    },
+    "edm": {
+     "chords": {
+      "begin": 5.17408338396308e-12,
+      "clip": 6,
+      "dur": 193142.85714285713,
+      "end": -0.0,
+      "media": "edm_early_main",
+      "mediaDuration": 199.273651,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 886376696
+     },
+     "drums": {
+      "begin": -1.16521237103484e-11,
+      "clip": 6,
+      "dur": 192285.7142857143,
+      "end": 4857.145833333333,
+      "media": "edm_early_drums",
+      "mediaDuration": 198.925351,
+      "playAt": 8516.3388337484,
+      "silent": false,
+      "source": 951980462
+     }
+    },
+    "emo": {
+     "chords": {
+      "begin": -1.53654866608122e-11,
+      "clip": 7,
+      "dur": 204253.5,
+      "end": -253.5,
+      "media": "emo_early_main",
+      "mediaDuration": 204.173061,
+      "playAt": 1659.19597660555,
+      "silent": false,
+      "source": 144037551
+     },
+     "drums": {
+      "begin": -1.21058718605127e-12,
+      "clip": 7,
+      "dur": 204000.0,
+      "end": 0.0,
+      "media": "emo_early_drums",
+      "mediaDuration": 200.922268,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 583288568
+     }
+    },
+    "funk": {
+     "chords": {
+      "begin": 4.52471393685983e-13,
+      "clip": 2,
+      "dur": 203999.8125,
+      "end": 0.0,
+      "media": "disco_early_main",
+      "mediaDuration": 202.617324,
+      "playAt": 1659.19597660554,
+      "silent": false,
+      "source": 44554031
+     },
+     "drums": {
+      "begin": 2.6174471829841e-12,
+      "clip": 2,
+      "dur": 203999.8125,
+      "end": -3125.1875,
+      "media": "disco_early_drums",
+      "mediaDuration": 198.089433,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 68122284
+     }
+    },
+    "hyperpop": {
+     "top": {
+      "begin": -7.75690622845104e-12,
+      "clip": 5,
+      "dur": 198857.14583333334,
+      "end": -0.0,
+      "media": "hyperpop_early",
+      "mediaDuration": 201.433107,
+      "playAt": 8516.3388337484,
+      "silent": false,
+      "source": 724634490
+     }
+    },
+    "illbeats": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 12,
+      "dur": 190714.2857142857,
+      "end": 0.0,
+      "media": "illbeats_early",
+      "mediaDuration": 197.625034,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 680360643
+     },
+     "top": {
+      "media": null,
+      "reason": "value not in track",
+      "silent": true
+     }
+    },
+    "jazz": {
+     "top": {
+      "begin": -6.13908923696727e-12,
+      "clip": 6,
+      "dur": 193285.7142857143,
+      "end": -0.0,
+      "media": "jazz_early_main",
+      "mediaDuration": 199.62195,
+      "playAt": 8516.3388337484,
+      "silent": false,
+      "source": 750496079
+     }
+    },
+    "kda": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 191571.42857142858,
+      "end": 0.0,
+      "media": "kda_early_main",
+      "mediaDuration": 198.042993,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 226354295
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 193714.2857142857,
+      "end": 0.0,
+      "media": "kda_early_drums",
+      "mediaDuration": 200.341769,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 1012769487
+     },
+     "top": {
+      "begin": 2.22992234104911e-12,
+      "clip": 3,
+      "dur": 192000.0,
+      "end": 0.0,
+      "media": "kda_early_secondary",
+      "mediaDuration": 198.739592,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 855051905
+     }
+    },
+    "none": {
+     "chords": {
+      "begin": -4.65094629475971e-12,
+      "clip": 0,
+      "dur": 204000.0,
+      "end": -428.5625,
+      "media": "piano_early",
+      "mediaDuration": 202.013605,
+      "playAt": 1659.19597660554,
+      "silent": false,
+      "source": 474811434
+     },
+     "drums": {
+      "media": null,
+      "reason": "no clip 0",
+      "silent": true
+     },
+     "top": {
+      "media": null,
+      "reason": "no clip 0",
+      "silent": true
+     }
+    },
+    "pentakill": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 204000.02083333334,
+      "end": -3428.4583333333335,
+      "media": "pentakill_early_main",
+      "mediaDuration": 201.827846,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 960877048
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 204000.02083333334,
+      "end": -3428.4583333333335,
+      "media": "pentakill_early_drums",
+      "mediaDuration": 200.945488,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 265578116
+     },
+     "top": {
+      "begin": 800.0,
+      "clip": 2,
+      "dur": 204000.02083333334,
+      "end": -3428.4583333333335,
+      "media": "pentakill_early_secondary",
+      "mediaDuration": 199.157551,
+      "playAt": 1657.62733780401,
+      "silent": false,
+      "source": 190849709
+     }
+    },
+    "popband": {
+     "chords": {
+      "begin": 3.35376171278767e-12,
+      "clip": 10,
+      "dur": 192428.57142857142,
+      "end": -0.0,
+      "media": "heartsteel_early_main",
+      "mediaDuration": 198.460952,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 878627265
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 10,
+      "dur": 192428.57142857142,
+      "end": -0.0,
+      "media": "heartsteel_early_drums",
+      "mediaDuration": 198.925351,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 901504719
+     },
+     "top": {
+      "begin": 6857.14285714285,
+      "clip": 7,
+      "dur": 205714.29166666666,
+      "end": -4616.875,
+      "media": "heartsteel_early_secondary",
+      "mediaDuration": 201.804626,
+      "playAt": 1659.19597660553,
+      "silent": false,
+      "source": 987344378
+     }
+    },
+    "punkrock": {
+     "chords": {
+      "begin": -2.74535949529309e-12,
+      "clip": 9,
+      "dur": 192857.14285714287,
+      "end": 0.0,
+      "media": "punk_early_main",
+      "mediaDuration": 199.57551,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 863932671
+     },
+     "drums": {
+      "begin": 1.62359015121183e-12,
+      "clip": 9,
+      "dur": 192857.14285714287,
+      "end": 0.0,
+      "media": "punk_early_drums",
+      "mediaDuration": 199.366531,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 779547448
+     }
+    },
+    "truedamage": {
+     "chords": {
+      "begin": 1.04533048883582e-11,
+      "clip": 1,
+      "dur": 192000.0,
+      "end": 7714.291666666667,
+      "media": "truedamage_early_main",
+      "mediaDuration": 197.973333,
+      "playAt": 8516.33883374838,
+      "silent": false,
+      "source": 37606845
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 192000.0,
+      "end": 7714.291666666667,
+      "media": "truedamage_early_drums",
+      "mediaDuration": 198.205533,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 255664088
+     },
+     "top": {
+      "begin": 6.47324396777183e-13,
+      "clip": 1,
+      "dur": 192000.0,
+      "end": 0.0,
+      "media": "truedamage_early_secondary",
+      "mediaDuration": 198.669932,
+      "playAt": 8516.33883374839,
+      "silent": false,
+      "source": 1072256621
+     }
+    }
+   },
+   "tempo": 120.0
+  },
+  "act23": {
+   "durationMs": 174584.5633678156,
+   "entryMs": 10656.5246208276,
+   "exitMs": 165333.333333333,
+   "gridMs": 1000.0,
+   "loopMax": 0,
+   "loopMin": 0,
+   "loopMs": 165333.333333333,
+   "markers": {
+    "43573010": 10656.5246208276,
+    "1539036744": 165333.333333333
+   },
+   "playlist": 235740638,
+   "segment": 407554583,
+   "styles": {
+    "8bit": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171972.2083333333,
+      "end": -1315.6875,
+      "media": "8bit_late_main",
+      "mediaDuration": 171.247166,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 183258406
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171972.2083333333,
+      "end": -3003.1875,
+      "media": "8bit_late_drums",
+      "mediaDuration": 165.651156,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 855245751
+     }
+    },
+    "classical": {
+     "top": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 174722.4375,
+      "end": -8055.770833333333,
+      "media": "maestro_late",
+      "mediaDuration": 174.03356,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 808101762
+     }
+    },
+    "country": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 8,
+      "dur": 174666.5,
+      "end": -4009.9791666666665,
+      "media": "country_late_main",
+      "mediaDuration": 171.966984,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 827994839
+     },
+     "drums": {
+      "begin": 3989.85795416093,
+      "clip": 8,
+      "dur": 174666.5,
+      "end": 0.0,
+      "media": "country_late_drums",
+      "mediaDuration": 170.713107,
+      "playAt": -81.9366321844122,
+      "silent": false,
+      "source": 587697460
+     }
+    },
+    "dj": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 11,
+      "dur": 170666.6875,
+      "end": 0.0,
+      "media": "mixmaster_late",
+      "mediaDuration": 170.713107,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 939045675
+     }
+    },
+    "edm": {
+     "chords": {
+      "begin": 4.32986979603811e-12,
+      "clip": 6,
+      "dur": 173333.33333333334,
+      "end": -0.0,
+      "media": "edm_late_main",
+      "mediaDuration": 172.686803,
+      "playAt": -4.32986979603811e-12,
+      "silent": false,
+      "source": 1054442001
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 6,
+      "dur": 173333.33333333334,
+      "end": -0.0,
+      "media": "edm_late_drums",
+      "mediaDuration": 171.943764,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1046781036
+     }
+    },
+    "emo": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 7,
+      "dur": 174214.83333333334,
+      "end": -3548.1666666666665,
+      "media": "emo_late_main",
+      "mediaDuration": 173.89424,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 963735635
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 7,
+      "dur": 175580.16666666666,
+      "end": -4913.479166666667,
+      "media": "emo_late_drums",
+      "mediaDuration": 172.593923,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 662606730
+     }
+    },
+    "funk": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 167999.8333333333,
+      "end": -0.0,
+      "media": "disco_late_main",
+      "mediaDuration": 167.485533,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 48492322
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 167999.8333333333,
+      "end": -0.0,
+      "media": "disco_late_drums",
+      "mediaDuration": 166.812154,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 486254897
+     }
+    },
+    "hyperpop": {
+     "top": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 170666.5,
+      "end": 0.0,
+      "media": "hyperpop_late",
+      "mediaDuration": 166.742494,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 623295448
+     }
+    },
+    "illbeats": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 12,
+      "dur": 173333.33333333334,
+      "end": -5333.333333333333,
+      "media": "illbeats_late",
+      "mediaDuration": 166.881814,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 302550215
+     },
+     "top": {
+      "media": null,
+      "reason": "value not in track",
+      "silent": true
+     }
+    },
+    "jazz": {
+     "top": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171991.77083333334,
+      "end": -5325.104166666667,
+      "media": "jazz_late_main",
+      "mediaDuration": 171.107846,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 682214935
+     }
+    },
+    "kda": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 173333.3541666667,
+      "end": -2676.8333333333335,
+      "media": "kda_late_main",
+      "mediaDuration": 171.223946,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 74152310
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 173333.3541666667,
+      "end": -8000.020833333333,
+      "media": "kda_late_drums",
+      "mediaDuration": 165.093878,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1049097401
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 173333.3541666667,
+      "end": -2666.6875,
+      "media": "kda_late_secondary",
+      "mediaDuration": 166.951474,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 938903005
+     }
+    },
+    "none": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 0,
+      "dur": 170666.66666666666,
+      "end": 0.0,
+      "media": "piano_late",
+      "mediaDuration": 168.298231,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 965440342
+     },
+     "drums": {
+      "media": null,
+      "reason": "no clip 0",
+      "silent": true
+     },
+     "top": {
+      "media": null,
+      "reason": "value not in track",
+      "silent": true
+     }
+    },
+    "pentakill": {
+     "chords": {
+      "begin": 4.17070822322785e-11,
+      "clip": 3,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": "pentakill_late_main",
+      "mediaDuration": 167.322993,
+      "playAt": -4.17070822322785e-11,
+      "silent": false,
+      "source": 27648070
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": "pentakill_late_drums",
+      "mediaDuration": 167.833832,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 858586775
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": "pentakill_late_secondary",
+      "mediaDuration": 166.603175,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 556091457
+     }
+    },
+    "popband": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 10,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": "heartsteel_late_main",
+      "mediaDuration": 166.301315,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1052822869
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 10,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": "heartsteel_late_drums",
+      "mediaDuration": 166.997914,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 49832859
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 6,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": "heartsteel_late_secondary",
+      "mediaDuration": 166.881814,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 550008380
+     }
+    },
+    "punkrock": {
+     "chords": {
+      "begin": 56.5246208276188,
+      "clip": 9,
+      "dur": 174666.5,
+      "end": -5333.145833333333,
+      "media": "punk_late_main",
+      "mediaDuration": 167.415873,
+      "playAt": -2.01012539946532e-11,
+      "silent": false,
+      "source": 558665261
+     },
+     "drums": {
+      "begin": 12.0673553046872,
+      "clip": 9,
+      "dur": 174666.5,
+      "end": -5333.145833333333,
+      "media": "punk_late_drums",
+      "mediaDuration": 165.860136,
+      "playAt": -12.0673553046872,
+      "silent": false,
+      "source": 191757083
+     }
+    },
+    "truedamage": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": "truedamage_late_main",
+      "mediaDuration": 166.022676,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 965491831
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": "truedamage_late_drums",
+      "mediaDuration": 170.689887,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 799024685
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 0,
+      "dur": 168000.0,
+      "end": 0.0,
+      "media": "truedamage_late_secondary",
+      "mediaDuration": 165.024218,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 961403008
+     }
+    }
+   },
+   "tempo": 120.0
+  },
+  "draft": {
+   "durationMs": 174584.5633678156,
+   "entryMs": 10656.5246208276,
+   "exitMs": 165333.333333333,
+   "gridMs": 1000.0,
+   "loopMax": 0,
+   "loopMin": 0,
+   "loopMs": 165333.333333333,
+   "markers": {
+    "43573010": 10656.5246208276,
+    "50825255": 143323.191287494,
+    "1539036744": 165333.333333333
+   },
+   "playlist": 436482158,
+   "segment": 196375359,
+   "styles": {
+    "8bit": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171972.2083333333,
+      "end": -1315.6875,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1053756332
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171972.2083333333,
+      "end": -3003.1875,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 388997926
+     }
+    },
+    "classical": {
+     "top": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 174722.4375,
+      "end": -8055.770833333333,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 439740706
+     }
+    },
+    "country": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 8,
+      "dur": 174666.5,
+      "end": -4009.9791666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 319030727
+     },
+     "drums": {
+      "begin": 3989.85795416093,
+      "clip": 8,
+      "dur": 174666.5,
+      "end": 0.0,
+      "media": null,
+      "playAt": -81.9366321844122,
+      "silent": false,
+      "source": 359009882
+     }
+    },
+    "dj": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 11,
+      "dur": 170666.6875,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 313319876
+     }
+    },
+    "edm": {
+     "chords": {
+      "begin": 4.32986979603811e-12,
+      "clip": 6,
+      "dur": 173333.33333333334,
+      "end": -0.0,
+      "media": null,
+      "playAt": -4.32986979603811e-12,
+      "silent": false,
+      "source": 431039528
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 6,
+      "dur": 173333.33333333334,
+      "end": -0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 925314876
+     }
+    },
+    "emo": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 7,
+      "dur": 174214.83333333334,
+      "end": -3548.1666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 55742466
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 7,
+      "dur": 175580.16666666666,
+      "end": -4913.479166666667,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 454107120
+     }
+    },
+    "funk": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 167999.8333333333,
+      "end": -0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 297473093
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 167999.8333333333,
+      "end": -0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 495709137
+     }
+    },
+    "hyperpop": {
+     "top": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 170666.5,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 385637919
+     }
+    },
+    "illbeats": {
+     "drums": {
+      "begin": 0.0,
+      "clip": 12,
+      "dur": 173333.33333333334,
+      "end": -5333.333333333333,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 727488425
+     },
+     "top": {
+      "media": null,
+      "reason": "value not in track",
+      "silent": true
+     }
+    },
+    "jazz": {
+     "top": {
+      "begin": 0.0,
+      "clip": 5,
+      "dur": 171991.77083333334,
+      "end": -5325.104166666667,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 766077170
+     }
+    },
+    "kda": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 173333.3541666667,
+      "end": -2676.8333333333335,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 26443949
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 4,
+      "dur": 173333.3541666667,
+      "end": -8000.020833333333,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1034791636
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 2,
+      "dur": 173333.3541666667,
+      "end": -2666.6875,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 591539545
+     }
+    },
+    "none": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 0,
+      "dur": 170666.66666666666,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 333312079
+     },
+     "drums": {
+      "media": null,
+      "reason": "no clip 0",
+      "silent": true
+     },
+     "top": {
+      "media": null,
+      "reason": "value not in track",
+      "silent": true
+     }
+    },
+    "pentakill": {
+     "chords": {
+      "begin": 4.17070822322785e-11,
+      "clip": 3,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": null,
+      "playAt": -4.17070822322785e-11,
+      "silent": false,
+      "source": 554408033
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 3,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 534533656
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 169333.3541666667,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 278821646
+     }
+    },
+    "popband": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 10,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 31385290
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 10,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 269369418
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 6,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 123448125
+     }
+    },
+    "punkrock": {
+     "chords": {
+      "begin": 56.5246208276188,
+      "clip": 9,
+      "dur": 174666.5,
+      "end": -5333.145833333333,
+      "media": null,
+      "playAt": -2.01012539946532e-11,
+      "silent": false,
+      "source": 667077173
+     },
+     "drums": {
+      "begin": 12.0673553046872,
+      "clip": 9,
+      "dur": 174666.5,
+      "end": -5333.145833333333,
+      "media": null,
+      "playAt": -12.0673553046872,
+      "silent": false,
+      "source": 221321586
+     }
+    },
+    "truedamage": {
+     "chords": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 1056589230
+     },
+     "drums": {
+      "begin": 0.0,
+      "clip": 1,
+      "dur": 168000.0,
+      "end": -2666.6666666666665,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 104915294
+     },
+     "top": {
+      "begin": 0.0,
+      "clip": 0,
+      "dur": 168000.0,
+      "end": 0.0,
+      "media": null,
+      "playAt": 0.0,
+      "silent": false,
+      "source": 101894512
+     }
+    }
+   },
+   "tempo": 120.0
+  }
+ },
+ "switches": {
+  "Set_Switch_set10_8bit_chords": {
+   "group": 2652961739,
+   "value": 459862156
+  },
+  "Set_Switch_set10_8bit_drums": {
+   "group": 2652961738,
+   "value": 459862157
+  },
+  "Set_Switch_set10_classical_top": {
+   "group": 2652961736,
+   "value": 443084602
+  },
+  "Set_Switch_set10_country_chords": {
+   "group": 2652961739,
+   "value": 392751808
+  },
+  "Set_Switch_set10_country_drums": {
+   "group": 2652961738,
+   "value": 392751809
+  },
+  "Set_Switch_set10_dj_drums": {
+   "group": 2652961738,
+   "value": 375826971
+  },
+  "Set_Switch_set10_edm_chords": {
+   "group": 2652961739,
+   "value": 426306986
+  },
+  "Set_Switch_set10_edm_drums": {
+   "group": 2652961738,
+   "value": 426306987
+  },
+  "Set_Switch_set10_emo_chords": {
+   "group": 2652961739,
+   "value": 409529431
+  },
+  "Set_Switch_set10_emo_drums": {
+   "group": 2652961738,
+   "value": 409529430
+  },
+  "Set_Switch_set10_funk_chords": {
+   "group": 2652961739,
+   "value": 510195141
+  },
+  "Set_Switch_set10_funk_drums": {
+   "group": 2652961738,
+   "value": 510195140
+  },
+  "Set_Switch_set10_hyperpop_top": {
+   "group": 2652961736,
+   "value": 442937509
+  },
+  "Set_Switch_set10_illbeats_drums": {
+   "group": 2652961738,
+   "value": 392604776
+  },
+  "Set_Switch_set10_illbeats_top": {
+   "group": 2652961736,
+   "value": 392604778
+  },
+  "Set_Switch_set10_jazz_top": {
+   "group": 2652961736,
+   "value": 459715126
+  },
+  "Set_Switch_set10_kda_chords": {
+   "group": 2652961739,
+   "value": 476639971
+  },
+  "Set_Switch_set10_kda_drums": {
+   "group": 2652961738,
+   "value": 476639970
+  },
+  "Set_Switch_set10_kda_top": {
+   "group": 2652961736,
+   "value": 476639968
+  },
+  "Set_Switch_set10_none_chords": {
+   "group": 2652961739,
+   "value": 782826392
+  },
+  "Set_Switch_set10_none_drums": {
+   "group": 2652961738,
+   "value": 782826392
+  },
+  "Set_Switch_set10_none_top": {
+   "group": 2652961736,
+   "value": 782826392
+  },
+  "Set_Switch_set10_pentakill_chords": {
+   "group": 2652961739,
+   "value": 493417590
+  },
+  "Set_Switch_set10_pentakill_drums": {
+   "group": 2652961738,
+   "value": 493417591
+  },
+  "Set_Switch_set10_pentakill_top": {
+   "group": 2652961736,
+   "value": 493417589
+  },
+  "Set_Switch_set10_popband_chords": {
+   "group": 2652961739,
+   "value": 493270303
+  },
+  "Set_Switch_set10_popband_drums": {
+   "group": 2652961738,
+   "value": 493270302
+  },
+  "Set_Switch_set10_popband_top": {
+   "group": 2652961736,
+   "value": 493270300
+  },
+  "Set_Switch_set10_punkrock_chords": {
+   "group": 2652961739,
+   "value": 476492680
+  },
+  "Set_Switch_set10_punkrock_drums": {
+   "group": 2652961738,
+   "value": 476492681
+  },
+  "Set_Switch_set10_truedamage_chords": {
+   "group": 2652961739,
+   "value": 526972760
+  },
+  "Set_Switch_set10_truedamage_drums": {
+   "group": 2652961738,
+   "value": 526972761
+  },
+  "Set_Switch_set10_truedamage_top": {
+   "group": 2652961736,
+   "value": 526972763
+  }
+ }
+}
