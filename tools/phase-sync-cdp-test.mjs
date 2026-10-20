@@ -146,7 +146,7 @@ logsAtPlay = logs.length;
 const start = await read();
 const startWorst = report('A play', start);
 check('A: play lands every voice on the grid', onGrid(start), `${startWorst} ms`);
-check('A: default late loop is 165.02 s', Math.abs(start.loop - 165.02) < 0.1, `${start.loop.toFixed(3)} s`);
+check('A: default late loop is 165.333 s', Math.abs(start.loop - 165.333) < 0.1, `${start.loop.toFixed(3)} s`);
 
 await evaluate(`window.__set10Desk.setOverride('top', 'jazz')`);
 await sleep(1100);
@@ -201,7 +201,7 @@ const era = await read();
 const eraWorst = report('F era change', era);
 const reseat = logs.slice(beforeEra).find((line) => line.includes('re-seated'));
 check('F: era change re-seats the voices together', Boolean(reseat), reseat ?? 'no re-seated log');
-check('F: era loop is 197.63 s', Math.abs(era.loop - 197.625) < 0.1, `${era.loop.toFixed(3)} s`);
+check('F: era loop is 200.514 s', Math.abs(era.loop - 200.514) < 0.1, `${era.loop.toFixed(3)} s`);
 check('F: re-seated voices still share the grid', onGrid(era), `${eraWorst} ms`);
 
 console.log('\nsync log:');

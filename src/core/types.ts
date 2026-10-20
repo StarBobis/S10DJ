@@ -91,6 +91,36 @@ export interface StemScan {
   missing: string[];
 }
 
+/** One clip as recovered from the shipped Wwise bank. All times are ms. */
+export interface EngineClip {
+  silent?: boolean;
+  why?: string;
+  media?: string | null;
+  playAt?: number;
+  begin?: number;
+  end?: number;
+  dur?: number;
+  source?: number;
+  mediaDuration?: number | null;
+}
+
+/** One recovered song (act1, act2-3 or draft). */
+export interface EngineSong {
+  segment: number;
+  playlist: number | null;
+  durationMs: number;
+  entryMs: number;
+  exitMs: number;
+  loopMs: number;
+  tempo: number;
+  styles: Record<string, Partial<Record<Layer, EngineClip>>>;
+}
+
+export interface MusicEngine {
+  songs: Record<string, EngineSong>;
+  switches: Record<string, { group: number; value: number }>;
+}
+
 export interface LineupUnit {
   apiName: string;
   star: number;

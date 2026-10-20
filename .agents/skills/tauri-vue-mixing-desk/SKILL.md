@@ -215,7 +215,7 @@ the globs are evaluated once. For CDragon URLs and crop recipes, load the
 
 ## Waveform analyser
 
-`StemMixer` connects `masterGain -> analyser -> destination` and exposes
+`SegmentMixer` connects `masterGain -> analyser -> destination` and exposes
 `analyser`. `Waveform.vue` reads `getByteTimeDomainData` and
 `getByteFrequencyData` in a `requestAnimationFrame` loop, draws mirrored
 spectrum bars plus a gradient ribbon, and falls back to a synthetic wave when
@@ -263,25 +263,33 @@ reconstruction from Riot's interview plus shipped breakpoint data.
 * **Toggle by gain, not by stop/start.** Voices keep running while a layer is
   switched off, so re-enabling stays in sync; stop the source only when the stem
   is no longer used at all.
-* **One loop per era, not one per mix.** Stem durations differ by several
-  seconds (late era 165.0-174.0 s), so deriving the loop from the shortest
-  active stem made every combo change move the loop point and re-seat the whole
-  mix at a different `raw % loop`. The shipped soundtrack is one Wwise music
-  segment whose three layer tracks share a timeline, so the desk uses the
-  shortest stem of the whole era (`eraLoopSeconds()` -> `mixer.setLoopSeconds`)
-  and only shrinks it if an active fallback file is shorter. Plan edits now
-  never change the loop; an era switch does, once, and logs `re-seated N voices`.
-  `setLockLoop` updates `loopEnd` on live voices instead of restarting them.
+* **One Wwise segment, not one loop per file.** The shipped act 1 segment is
+  212.516 s with its loop/exit marker at 200.514 s; act 2-3 and draft are
+  174.585 s with the exit at 165.333 s. `data/set10_music_engine.json` carries
+  the recovered segment and every style/layer clip (`playAt`, `begin`, `dur`).
+  `SegmentMixer` schedules clips per loop pass at `loopStart + playAt` and never
+  loops a file on its own duration. Plan edits keep the pass; an act change
+  restarts the segment and logs `hard start` plus `re-seated N voices`.
+  `setLockLoop` is a no-op because the game loop is fixed.
 * **Join on the start clock, not on "now".** A new stem used to take
   `position()` at apply time and then start 20 ms later, so every changed layer
   entered one scheduling lead behind the voices that kept playing - the
   "beats don't line up after switching a combo" report (measured -20 ms before
-  the fix). Schedule the voice at `startAt = max(now + SCHEDULE_LEAD, startedAt)`
-  and offset it with `positionAt(startAt)`, so its phase equals the grid at the
-  moment it actually starts. The stock game does the same conceptually: the
-  layer switch swaps a source inside the running segment at the current music
-  position instead of restarting it (`MUS_Map22_Gameplay_Set10_events.bnk`, the
-  212.5 s segment with three switch-driven tracks).
+  the fix). `joinClip` schedules at `startAt = now + 0.02` and offsets with
+  `positionAt(startAt)`, so its media position equals the `playAt`-relative grid
+  at the moment it actually starts. The stock game swaps a source inside the
+  running segment at the current music position instead of restarting it.
+* **Cancel pending loop passes on a switch.** `allVoices` holds voices already
+  scheduled for the next loop. A plan edit must fade the current voice and any
+  future voice with the old clip, otherwise the old layer re-enters after the
+  swap. `scheduleLoop` dedupes by `(layer, loopIndex)` across `allVoices`.
+* **Keep continuous position separate from loop position.** The radio rotates
+  when `positionSeconds >= songSeconds`; returning `elapsed % loop` never
+  reaches the song length and the station never rotates. `positionSeconds` is
+  continuous, `positionAt()`/`phaseReport.transport` are wrapped at the loop.
+* **A hard restart must clear `allVoices`, not just `voices`.** Otherwise an
+  old scheduled voice with `loopIndex 0` blocks the new song and the new
+  segment starts with zero voices.
 * **Load stems in parallel.** `applyPlan` awaits `Promise.all`, and `load()`
   deduplicates concurrent requests for the same file. Sequential awaits made the
   first play take several seconds.

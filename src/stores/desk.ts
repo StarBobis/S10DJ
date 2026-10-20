@@ -1,6 +1,7 @@
 import { computed, reactive, watch } from 'vue';
-import { StemMixer } from '../core/audio';
+import { SegmentMixer, type ClipSpec, type SongSpec } from '../core/segment';
 import {
+  loadMusicEngine,
   loadRules,
   loadSettings,
   loadUnits,
@@ -40,6 +41,7 @@ import {
   type Layer,
   type LineupFile,
   type LineupUnit,
+  type MusicEngine,
   type Plan,
   type RulesFile,
   type Settings,
@@ -78,6 +80,7 @@ const state = reactive({
   noticeCount: 0,
   units: [] as Unit[],
   rules: null as RulesFile | null,
+  engine: null as MusicEngine | null,
   board: [] as BoardUnit[],
   settings: defaultSettings() as Settings,
   scan: null as StemScan | null,
@@ -100,7 +103,7 @@ const state = reactive({
   } as RadioState,
 });
 
-const mixer = new StemMixer({
+const mixer = new SegmentMixer({
   urlFor: stemUrl,
   fallbackUrlFor: stemUrlFallback,
   available: null,
@@ -206,43 +209,50 @@ export function fileFor(style: string, layer: Layer, era: Era): string | null {
   return null;
 }
 
-/** Every stem the rules reference for one era, deduplicated. */
-function eraStemFiles(era: Era): string[] {
-  const files = new Set<string>();
-  for (const style of Object.values(state.rules?.stems ?? {})) {
-    for (const mapping of Object.values(style)) {
-      const file = mapping?.[era];
-      if (file) files.add(file);
-    }
-  }
-  return [...files];
+/**
+ * The desk's two-era control maps to the game's acts: early is act 1 and late
+ * is act 2-3 (both acts share the short song). The draft phase has its own
+ * recording and no desk media yet; it is intentionally not exposed here.
+ */
+function songKey(era: Era): string {
+  return era === 'early' ? 'act1' : 'act23';
+}
+
+/** Loop and entry marker of the song selected by the era toggle. */
+export function songSpec(era: Era = state.settings.era): SongSpec {
+  const song = state.engine?.songs[songKey(era)];
+  return {
+    loop: (song?.loopMs ?? 0) / 1000,
+    entry: (song?.entryMs ?? 0) / 1000,
+  };
 }
 
 /**
- * Loop length shared by all mixes of an era.
+ * Turn the current style plan into the exact clip placement table.
  *
- * The shipped soundtrack is one Wwise music segment: the three layers are
- * tracks on the same timeline, so a layer switch never changes the song
- * length. Deriving the loop from the active stems made every combo change move
- * the loop point and re-seat the whole mix. Using the shortest era stem instead
- * keeps one grid for the whole session.
+ * `clip.playAt` is the clip's entry time on the segment timeline (1.659 s,
+ * 8.516 s, ...), so the mixer must not start every file at media zero. Silent
+ * game layers (`none` drums/top, ILLBEATS top, styles that do not provide the
+ * layer) become null and are not mixed at all.
  */
-export function eraLoopSeconds(era: Era = state.settings.era): number | null {
-  const durations = state.scan?.durations ?? {};
-  const values = eraStemFiles(era)
-    .map((file) => durations[file])
-    .filter((value): value is number => typeof value === 'number' && value > 0.05);
-  if (!values.length) return null;
-  return Math.min(...values);
-}
-
-function planFiles(): Record<Layer, string | null> {
-  const files = {} as Record<Layer, string | null>;
+export function planClips(era: Era = state.settings.era): Record<Layer, ClipSpec | null> {
+  const clips = {} as Record<Layer, ClipSpec | null>;
+  const song = state.engine?.songs[songKey(era)];
   for (const layer of LAYERS) {
     const style = state.plan[layer]?.style ?? 'none';
-    files[layer] = fileFor(style, layer, state.settings.era);
+    const clip = song?.styles?.[style]?.[layer];
+    if (!clip || clip.silent || !clip.media) {
+      clips[layer] = null;
+      continue;
+    }
+    clips[layer] = {
+      file: clip.media,
+      playAt: (clip.playAt ?? 0) / 1000,
+      begin: (clip.begin ?? 0) / 1000,
+      duration: (clip.dur ?? 0) / 1000,
+    };
   }
-  return files;
+  return clips;
 }
 
 export function unitByApi(apiName: string | null | undefined): Unit | null {
@@ -776,7 +786,17 @@ export async function play(): Promise<void> {
   state.status = 'loading';
   state.error = '';
   try {
-    await mixer.start(planFiles(), state.settings.layers, state.settings.master, state.settings.lockLoop);
+    const song = songSpec();
+    if (!state.engine || song.loop <= 0.05) {
+      throw new Error('music engine table is missing (data/set10_music_engine.json)');
+    }
+    await mixer.start(
+      planClips(),
+      state.settings.layers,
+      state.settings.master,
+      state.settings.lockLoop,
+      song,
+    );
     state.playing = true;
     state.status = 'playing';
     await reportEvent('transport: playing');
@@ -798,17 +818,16 @@ export function realign(): void {
     notify('notPlaying');
     return;
   }
-  mixer.restart();
+  void mixer.restart(planClips());
 }
 
 export async function runStemTest(): Promise<void> {
   if (state.testing?.running) return;
   state.testing = { running: true, ok: [], failed: [] };
-  const files = LAYERS.map(
-    (layer) =>
-      fileFor(state.plan[layer]?.style ?? 'none', layer, state.settings.era) ??
-      fileFor('none', layer, state.settings.era),
-  ).filter((file): file is string => Boolean(file));
+  const clips = planClips();
+  const files = LAYERS.map((layer) => clips[layer]?.file).filter(
+    (file): file is string => Boolean(file),
+  );
   const unique = [...new Set(files)];
   if (!unique.length) {
     state.testing = { running: false, ok: [], failed: ['no stem resolved'] };
@@ -945,6 +964,7 @@ export function mixerPhases() {
 if (import.meta.env.DEV) {
   (window as unknown as Record<string, unknown>).__set10Desk = {
     state,
+    mixer,
     mixerPhases,
     applyCombo,
     setOverride,
@@ -980,14 +1000,18 @@ export async function initDesk(): Promise<void> {
   if (state.ready) return;
   try {
     state.settings = await loadSettings();
-    const [units, rules] = await Promise.all([loadUnits(), loadRules()]);
+    const [units, rules, engine] = await Promise.all([
+      loadUnits(),
+      loadRules(),
+      loadMusicEngine(),
+    ]);
     state.units = units.units;
     state.rules = rules;
+    state.engine = engine;
     await resolveAudioRoot();
     state.scan = await scanStems(requiredStems(rules));
     mixer.setMaster(state.settings.master);
     mixer.setLockLoop(state.settings.lockLoop);
-    mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
     recompute();
     state.ready = true;
     await reportEvent(
@@ -999,9 +1023,6 @@ export async function initDesk(): Promise<void> {
 }
 
 function scheduleApply() {
-  // Always publish the era loop first: every apply compares it with the loop
-  // the running voices were seated on.
-  mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
   if (!state.playing) {
     restartPending = false;
     return;
@@ -1009,14 +1030,14 @@ function scheduleApply() {
   if (applyTimer) clearTimeout(applyTimer);
   applyTimer = setTimeout(() => {
     applyTimer = null;
-    // A station change restarts every voice together; a plain plan edit keeps
-    // the running phase so layer tweaks never interrupt the song.
+    // A station change or an act change restarts the segment together; a plain
+    // plan edit joins the new clip at its correct media offset.
     if (restartPending) {
       restartPending = false;
-      mixer.restart(planFiles());
+      void mixer.restart(planClips());
       return;
     }
-    void mixer.applyPlan(planFiles());
+    void mixer.applyPlan(planClips(), songSpec());
   }, 40);
 }
 
@@ -1033,9 +1054,7 @@ watch(
 watch(() => JSON.stringify(state.plan), scheduleApply);
 
 watch(() => state.settings.era, () => {
-  // The loop is one per era: change it before the plan apply so the apply sees
-  // the new length and re-seats the running voices exactly once.
-  mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
+  // The act changes the segment (loop, entry marker and clips) as one unit.
   scheduleApply();
 });
 

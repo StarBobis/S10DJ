@@ -1,5 +1,12 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core';
-import { defaultSettings, type Settings, type StemScan, type UnitsFile, type RulesFile } from './types';
+import {
+  defaultSettings,
+  type MusicEngine,
+  type Settings,
+  type StemScan,
+  type UnitsFile,
+  type RulesFile,
+} from './types';
 
 export const inTauri = (): boolean =>
   typeof window !== 'undefined' && '__TAURI_INTERNALS__' in (window as unknown as Record<string, unknown>);
@@ -34,6 +41,11 @@ export function loadUnits(): Promise<UnitsFile> {
 
 export function loadRules(): Promise<RulesFile> {
   return loadData<RulesFile>('music_rules.json');
+}
+
+/** Exact act/phase song table recovered from the shipped Wwise bank. */
+export function loadMusicEngine(): Promise<MusicEngine> {
+  return loadData<MusicEngine>('set10_music_engine.json');
 }
 
 let audioRoot = 'assets/audio_ogg';
