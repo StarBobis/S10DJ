@@ -312,6 +312,17 @@ are not recoverable from the public 13.24 client/content:
   console string `TFT10_MusicRemix_GetStems` is a cheat command name, not a
   script body.
 
+The current Chinese `Global.wad.client` was also checked: it contains two
+`PROP` chunks for music, `2f30c6f7747eb925` (215 KB, property
+`TFTMusicManagerEnabled`) and `78bd349e81fa85c2` (176 KB, property
+`TFT10_MusicRemix_GetStems`). Both begin with the `PROP` magic and hold only
+property keys; there is no Lua, bytecode or native body in either. The 13.24 PC
+`Global.wad.client` available here is a zero-filled 559 MB file, and the mobile
+Global download is currently blocked by Riot CDN DNS failures, so the mobile
+copy could not be checked. The community mixers (`OfficiallySp/tftmixer`,
+`Reaver113/rumble-remixer`) are manual players that ship the same AAC tracks;
+neither implements the game's selection rule.
+
 Consequently the actual layer-selection rule and the streamed media need one of
 the following before the "identical to the game" goal can be proven: a runtime
 dump of the decrypted client (or a hook of the music switch calls), the
