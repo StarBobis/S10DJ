@@ -83,6 +83,10 @@ Then `GET /lol-game-data/assets/...` works (catalogs such as
 `v1/summoner-icons.json` with per-icon `rarities`, and raw art). `/fe/...`
 plugin routes do not answer there - extract those from the wad instead.
 
+The Ux log is created at 0 bytes and only flushes minutes into a session, so a
+fresh client yields no credentials; `lcu-live-data-surfaces` has the full
+discovery order and the live-surfaces map.
+
 ## 5. Inspecting the extracted media
 
 ```powershell

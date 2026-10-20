@@ -1,7 +1,7 @@
-"""在大文件里用正则抽取可打印字符串（分块扫描，避免一次性读入内存）。
+"""Extract printable ASCII strings from a large binary by regex, chunk by chunk.
 
-用法: python scan_strings.py <file> "<regex>" [max_results]
-regex 按 bytes 处理；匹配到的内容必须是可打印 ASCII（脚本已保证边界）。
+Usage: python scan_strings.py <file> "<regex>" [max_results]
+The regex is applied to raw bytes and only printable ASCII runs are reported.
 """
 import mmap
 import re

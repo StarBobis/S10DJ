@@ -1,6 +1,6 @@
-"""把二进制文件里的可打印字符串全部导出到文本文件（分块，低内存）。
+"""Dump every printable ASCII string of a binary to a text file (low memory).
 
-用法: python dump_strings.py <file> <out.txt> [minlen]
+Usage: python dump_strings.py <file> <out.txt> [minlen]
 """
 import mmap
 import re
