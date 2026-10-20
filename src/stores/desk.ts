@@ -206,6 +206,36 @@ export function fileFor(style: string, layer: Layer, era: Era): string | null {
   return null;
 }
 
+/** Every stem the rules reference for one era, deduplicated. */
+function eraStemFiles(era: Era): string[] {
+  const files = new Set<string>();
+  for (const style of Object.values(state.rules?.stems ?? {})) {
+    for (const mapping of Object.values(style)) {
+      const file = mapping?.[era];
+      if (file) files.add(file);
+    }
+  }
+  return [...files];
+}
+
+/**
+ * Loop length shared by all mixes of an era.
+ *
+ * The shipped soundtrack is one Wwise music segment: the three layers are
+ * tracks on the same timeline, so a layer switch never changes the song
+ * length. Deriving the loop from the active stems made every combo change move
+ * the loop point and re-seat the whole mix. Using the shortest era stem instead
+ * keeps one grid for the whole session.
+ */
+export function eraLoopSeconds(era: Era = state.settings.era): number | null {
+  const durations = state.scan?.durations ?? {};
+  const values = eraStemFiles(era)
+    .map((file) => durations[file])
+    .filter((value): value is number => typeof value === 'number' && value > 0.05);
+  if (!values.length) return null;
+  return Math.min(...values);
+}
+
 function planFiles(): Record<Layer, string | null> {
   const files = {} as Record<Layer, string | null>;
   for (const layer of LAYERS) {
@@ -902,6 +932,28 @@ export function mixerAnalyser(): AnalyserNode | null {
   return mixer.analyser;
 }
 
+/** Live voice phases against the transport grid, for sync diagnostics/tests. */
+export function mixerPhases() {
+  return mixer.phaseReport();
+}
+
+/**
+ * Dev-only handle for CDP smoke tests. Vite strips this from sealed builds.
+ * The page's live module instance is the only one that owns the mixer, and an
+ * `import()` from a test can resolve a second instance after an HMR update.
+ */
+if (import.meta.env.DEV) {
+  (window as unknown as Record<string, unknown>).__set10Desk = {
+    state,
+    mixerPhases,
+    applyCombo,
+    setOverride,
+    styleCombos,
+    play,
+    stop,
+  };
+}
+
 export function requiredStems(rules: RulesFile): string[] {
   const names = new Set<string>();
   for (const style of Object.values(rules.stems ?? {})) {
@@ -935,6 +987,7 @@ export async function initDesk(): Promise<void> {
     state.scan = await scanStems(requiredStems(rules));
     mixer.setMaster(state.settings.master);
     mixer.setLockLoop(state.settings.lockLoop);
+    mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
     recompute();
     state.ready = true;
     await reportEvent(
@@ -946,6 +999,9 @@ export async function initDesk(): Promise<void> {
 }
 
 function scheduleApply() {
+  // Always publish the era loop first: every apply compares it with the loop
+  // the running voices were seated on.
+  mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
   if (!state.playing) {
     restartPending = false;
     return;
@@ -976,7 +1032,12 @@ watch(
 
 watch(() => JSON.stringify(state.plan), scheduleApply);
 
-watch(() => state.settings.era, scheduleApply);
+watch(() => state.settings.era, () => {
+  // The loop is one per era: change it before the plan apply so the apply sees
+  // the new length and re-seats the running voices exactly once.
+  mixer.setLoopSeconds(eraLoopSeconds(state.settings.era));
+  scheduleApply();
+});
 
 watch(
   () => JSON.stringify(state.settings.layers),

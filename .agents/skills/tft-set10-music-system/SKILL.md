@@ -133,3 +133,47 @@ python tools/build_dataset.py
 
 CommunityDragon keeps per-patch TFT data, which is the cheapest way to get unit
 and trait tables for any set.
+
+## Shipped bank layout (13.24)
+
+The layer routing lives in two Wwise banks inside `Map22.wad.client`:
+
+```
+assets/sounds/wwise2016/sfx/shared/mus_map22_gameplay_set10_events.bnk  hash 835ed8f59b628d8a
+assets/sounds/wwise2016/sfx/shared/mus_map22_gameplay_set10_audio.bnk   hash 12c5bae31c72a039
+```
+
+`wad_tool.py grab` needs the xxhash64 of the **lowercase** path; the paths are
+printed in the 17 MB Map22 `PROP` bin next to `Play_mus_map22_theme_set10_draft`.
+Dump the events bank with wwiser (it recovers the bank name from the BKHD ID):
+
+```powershell
+git clone --depth 1 https://github.com/bnnm/wwiser.git tmp/wwiser
+py -3.14 tmp/wwiser/wwiser.py -d txt tmp/music_banks/MUS_Map22_Gameplay_Set10_events.bnk
+```
+
+What the dump shows:
+
+* A music switch container (`183207102`, meter 140 BPM, 4-bar grid 6857 ms)
+  selects between three random-sequence containers; one of them
+  (`1058364540`) holds the gameplay song.
+* The song is **one music segment** (`549536093`, 212,516 ms, 4/4) with **three
+  child music tracks** (`106360728`, `826482659`, `911005957`). Each track has
+  its own switch group (`uGroupID` 2652961736/738/739) and 7-13 sources, i.e.
+  the styles per layer. A switch swaps the source inside the running track.
+* Sources run 168-210 s and are placed at `fPlayAt` 1659.2 ms or 8516.3 ms with
+  end trims. Those are the authors' entry points on the shared segment timeline,
+  not separate songs. Community rips are raw media with the placement stripped,
+  so inferring per-style offsets from file duration is not reliable.
+* The `_audio.bnk` is only 0.5 MB: the media are streamed `.wem` files, not bank
+  data. The event names sit in the PROP bin: `Play_mus_map22_set10_base_Act1`,
+  `Play_mus_map22_set10_kda`, `Play_mus_map22_theme_set10`,
+  `Set_State_Music_set10_Phase_*`.
+
+The segment's `AkMeterInfo` says **120 BPM**, while the wrapping switch container
+says 140 BPM and the onset analysis of the shipped stems points at ~140 BPM
+(bar ~1.714 s). Do not build a bar quantiser from the segment meter alone.
+
+The 33 switch names hash to IDs that are *not* FNV-1 of the printed names
+(Wwise generated group IDs), so the name-to-group mapping is inferred from the
+track arity (13 drums, 11 chords, 9 top), not recovered from the bank.

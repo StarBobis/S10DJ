@@ -170,7 +170,7 @@ Vue 3 + TypeScript (Vite)
 
 - `src/core/rules.ts` 计算流派权重、单体羁绊占位和三层的最终方案。
 - `src/core/combos.ts` 为每个可用 1-3 流派组做流派与不同层的匹配，保证组合里的每个流派都真的参与。
-- `src/core/audio.ts` 每条分轨一个 Web Audio voice，平滑增益、共享循环区间，并暴露主分析器。
+- `src/core/audio.ts` 每条分轨一个 Web Audio voice，平滑增益、按时代共享循环区间（切层不换拍），并暴露主分析器。
 - `src/stores/desk.ts` 负责棋盘编辑、手动模式、由音频播放位置驱动的电台轮换和阵容导入导出。
 - 打包版通过 Rust 命令和 Tauri asset 协议读取 `data/` 与 `assets/audio_ogg/`；英雄美术由 Vite 打进包里。
 

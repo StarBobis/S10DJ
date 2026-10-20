@@ -5,7 +5,8 @@
  * B: the countdown equals the station's real song length and follows the audio.
  * C: pausing freezes it - no wall-clock timer eats the song.
  * D: skipping to the next station starts that one aligned as well.
- * E: a plain plan edit that changes the loop length re-seats the voices.
+ * E: switching era changes the one-per-era loop and re-seats every voice
+ *    together (a plan edit no longer changes the loop at all).
  * F: the station rotates after one full song of the current station, not after
  *    the old fixed 165 s.
  *
@@ -190,6 +191,8 @@ check(
 );
 
 // Era switch on a live mix changes the loop length: voices must be re-seated.
+// A station may have flipped the era, so toggle to the other button instead of
+// assuming the current one.
 await evaluate(`document.querySelector('.radio-button').click()`); // radio off
 await sleep(800);
 // Two champions so the mix really has several voices to re-seat.
@@ -203,9 +206,15 @@ if (!(await evaluate(`document.querySelector('.transport-status')?.classList.con
 }
 await sleep(2500);
 const beforeEra = logs.length;
-await evaluate(`document.querySelectorAll('.era-toggle .segmented button')[1].click()`); // late
-await sleep(2500);
-const reseat = logs.slice(beforeEra).find((item) => item.text.includes('re-seated'));
+const eraIndex = await evaluate(
+  `[...document.querySelectorAll('.era-toggle .segmented button')].findIndex((b) => b.classList.contains('active'))`,
+);
+await evaluate(`document.querySelectorAll('.era-toggle .segmented button')[${1 - eraIndex}].click()`);
+let reseat = null;
+for (let attempt = 0; attempt < 20 && !reseat; attempt += 1) {
+  await sleep(250);
+  reseat = logs.slice(beforeEra).find((item) => item.text.includes('re-seated'));
+}
 check('era switch re-seats the running mix', Boolean(reseat), reseat?.text ?? 'no re-seated log');
 check(
   'every voice is re-seated together',

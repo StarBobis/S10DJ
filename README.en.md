@@ -206,7 +206,8 @@ Key implementation notes:
 - `src/core/combos.ts` generates every usable 1-3 style group with a perfect
   style-to-distinct-layer matching, so every style in a combo contributes.
 - `src/core/audio.ts` uses one Web Audio voice per stem file, ramps gains, keeps
-  a shared loop region and exposes the master analyser.
+  one loop per era (a layer change joins the running grid instead of moving the
+  loop), and exposes the master analyser.
 - `src/stores/desk.ts` owns board editing, manual mode, the audio-position driven
   radio rotation and lineup import/export.
 - Packaged builds read `data/` and `assets/audio_ogg/` through Rust commands and

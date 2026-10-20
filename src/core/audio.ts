@@ -11,7 +11,22 @@ export interface MixerOptions {
   onEvent?: (message: string) => void;
 }
 
-type Voice = { node: AudioBufferSourceNode; gain: GainNode; file: string };
+type Voice = {
+  node: AudioBufferSourceNode;
+  gain: GainNode;
+  file: string;
+  /** Context time the source was scheduled to start. */
+  startAt: number;
+  /** Buffer offset handed to `start()`. */
+  offset: number;
+};
+
+/**
+ * Scheduling lead for a new voice. Every voice is started at an absolute
+ * context time, never "as soon as possible", so the join offset can be measured
+ * on the same clock. Kept small: a plan edit should feel immediate.
+ */
+const SCHEDULE_LEAD = 0.05;
 
 /**
  * Layer mixer for the Set 10 stems.
@@ -36,6 +51,17 @@ export class StemMixer {
   };
   private master = 0.9;
   private lockLoop = true;
+  /**
+   * Loop length shared by every mix of the current era.
+   *
+   * The original Set 10 soundtrack is one Wwise music segment whose three layer
+   * tracks all run on the same timeline, so switching a layer never changes the
+   * song length. Deriving the loop from the active stems instead made every
+   * combo change move the loop point and re-seat the whole mix, which is heard
+   * as a jumped bar grid. The store derives this from all stems of the era and
+   * the mixer only shrinks it if an active file is even shorter.
+   */
+  private loopSeconds: number | null = null;
   /** Loop length of the plan currently applied, used to detect phase breaks. */
   private loopLength: number | null = null;
   private playing = false;
@@ -52,6 +78,41 @@ export class StemMixer {
   /** Live analyser for the waveform display (null until the first play). */
   get analyser(): AnalyserNode | null {
     return this.analyserNode;
+  }
+
+  /**
+   * Diagnostic snapshot of the live voices against the transport grid.
+   *
+   * `delta` is the signed distance (seconds) between a voice's phase and the
+   * transport phase at the same loop length. Everything on the same bar grid
+   * must report ~0; a stem that entered late or on its own loop shows up here.
+   * Used by the CDP sync test.
+   */
+  phaseReport(): {
+    playing: boolean;
+    loop: number | null;
+    transport: number;
+    voices: { file: string; startAt: number; offset: number; phase: number; delta: number }[];
+  } {
+    const ctx = this.ctx;
+    if (!ctx) return { playing: false, loop: null, transport: 0, voices: [] };
+    const loop = this.activeLoop();
+    const transport = this.position();
+    const now = ctx.currentTime;
+    const voices = [...this.voices.values()].map((voice) => {
+      const duration = this.buffers.get(voice.file)?.duration ?? 0;
+      const span = loop ? Math.min(loop, duration) : duration;
+      const elapsed = Math.max(0, now - voice.startAt);
+      const phase = span > 0.05 ? (voice.offset + elapsed) % span : 0;
+      let delta = 0;
+      if (span > 0.05) {
+        delta = phase - (transport % span);
+        if (delta > span / 2) delta -= span;
+        if (delta < -span / 2) delta += span;
+      }
+      return { file: voice.file, startAt: voice.startAt, offset: voice.offset, phase, delta };
+    });
+    return { playing: this.playing, loop, transport, voices };
   }
 
   /**
@@ -150,7 +211,20 @@ export class StemMixer {
   /** Transport position in seconds, clamped so scheduling never goes negative. */
   private position(): number {
     if (!this.playing || !this.ctx) return this.offset;
-    return Math.max(0, this.offset + (this.ctx.currentTime - this.startedAt));
+    return this.positionAt(this.ctx.currentTime);
+  }
+
+  /**
+   * Transport position at an arbitrary context time.
+   *
+   * A new voice must be offset against the position at its *scheduled* start,
+   * not the position when the plan was applied. Offsetting against "now" while
+   * starting 50 ms later leaves the new stem one scheduling lead behind the
+   * voices that were already running - the off-beat join this desk had.
+   */
+  private positionAt(time: number): number {
+    if (!this.playing || !this.ctx) return this.offset;
+    return Math.max(0, this.offset + (time - this.startedAt));
   }
 
   private activeFiles(): string[] {
@@ -165,12 +239,21 @@ export class StemMixer {
   /**
    * Length of the current song in seconds.
    *
-   * Locked-loop playback wraps every voice at the shortest active stem, so that
-   * stem is one full pass of the mix; the radio uses it as the station length.
-   * Stems that are still decoding are ignored, so the value only ever shrinks
-   * towards the real length.
+   * Locked-loop playback wraps every voice at the era loop (or at a shorter
+   * active stem if a fallback file is in the plan), so that value is one full
+   * pass of the mix; the radio uses it as the station length. Stems that are
+   * still decoding are ignored, so the value only ever shrinks towards the real
+   * length.
    */
   songSeconds(): number | null {
+    const active = this.minActiveSeconds();
+    if (!this.lockLoop) return active;
+    if (this.loopSeconds === null) return active;
+    return active === null ? this.loopSeconds : Math.min(this.loopSeconds, active);
+  }
+
+  /** Shortest stem currently in the plan and decoded. */
+  private minActiveSeconds(): number | null {
     const lengths = [...new Set(this.activeFiles())]
       .map((file) => this.buffers.get(file)?.duration)
       .filter((value): value is number => typeof value === 'number' && value > 0.05);
@@ -181,6 +264,17 @@ export class StemMixer {
   private activeLoop(): number | null {
     if (!this.lockLoop) return null;
     return this.songSeconds();
+  }
+
+  /**
+   * Fixed loop length for the current era (null falls back to the active stems).
+   * The next apply sees the new length, re-seats every voice once and updates
+   * the live loop regions; changing it here would wrap a voice early.
+   */
+  setLoopSeconds(seconds: number | null) {
+    const next = seconds !== null && seconds > 0.05 ? seconds : null;
+    if (next === this.loopSeconds) return;
+    this.loopSeconds = next;
   }
 
   private voiceTarget(file: string): number {
@@ -254,9 +348,14 @@ export class StemMixer {
     // A hard start waits for every stem to decode, so the real start can be
     // later than the requested one; recording it keeps positionSeconds honest
     // and makes a station change land on the loop wrap instead of drifting.
-    const startAt = hard ? Math.max(this.startedAt, ctx.currentTime + 0.02) : ctx.currentTime + 0.02;
+    //
+    // Never schedule before the transport itself starts: the first edit during
+    // the opening lead would otherwise put the new stem ahead of the grid.
+    const startAt = Math.max(ctx.currentTime + SCHEDULE_LEAD, this.startedAt);
     if (hard) this.startedAt = startAt;
-    const raw = hard ? 0 : this.position();
+    // Offset on the start clock, not on "now". This is what keeps a stem that
+    // enters mid-song on the same sample position as the voices already there.
+    const raw = this.positionAt(startAt);
 
     // A soft apply keeps voices running so layer edits stay in sync - but only
     // while the loop length holds. Once it changes, the survivors still sit on
@@ -270,7 +369,9 @@ export class StemMixer {
       for (const voice of this.voices.values()) {
         voice.gain.gain.cancelScheduledValues(ctx.currentTime);
         voice.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01);
-        voice.node.stop(ctx.currentTime + 0.05);
+        // Stop exactly where the re-seated voices begin, so the old and the new
+        // bar grids never overlap for a few milliseconds.
+        voice.node.stop(startAt);
       }
       this.voices.clear();
       this.emit(`re-seated ${files.length} voices at ${raw.toFixed(2)}s (loop ${loop.toFixed(2)}s)`);
@@ -299,7 +400,7 @@ export class StemMixer {
         const wrapped = span > 0.05 ? raw % span : 0;
         const safeOffset = Math.max(0, Math.min(wrapped, Math.max(0, span - 0.01)));
         node.start(startAt, safeOffset);
-        voice = { node, gain, file };
+        voice = { node, gain, file, startAt, offset: safeOffset };
         this.voices.set(file, voice);
       }
       voice.gain.gain.setTargetAtTime(this.voiceTarget(file), startAt, 0.12);

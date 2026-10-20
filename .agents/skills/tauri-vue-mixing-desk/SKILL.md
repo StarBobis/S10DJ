@@ -82,7 +82,7 @@ hears. `MixerPanel` shows a `radio` badge on pinned channels. Leaving radio mode
 not restoring the snapshot.
 
 **One station = one song, measured in audio time.** A 250 ms ticker compares
-`mixer.positionSeconds` against `mixer.songSeconds()` (the shortest active stem,
+`mixer.positionSeconds` against `mixer.songSeconds()` (the one loop per era,
 because locked-loop playback wraps every voice there) and only publishes
 `radio.progress` / `radio.remaining` until the song ends. Never drive the
 rotation from `setInterval`/`Date.now()`: the old fixed 165 s timer cut every
@@ -90,15 +90,14 @@ early-era station 33-37 s short (the songs are 197.6-202.0 s) and its countdown
 kept running while paused. Audio-position rotation also survives a slow stem
 load, a pause and a manual realign for free.
 
-A station change must also **restart the mix aligned**: `radioBeat()` sets
-`restartPending` and lets the debounced `scheduleApply()` call
-`mixer.restart(planFiles())`, which fades out every voice and starts the new
-plan with all stems at loop offset 0. A plain `applyPlan()` keeps the surviving
-voices at their old phase while new stems enter at the new loop offset, which
-mixes two bar positions - that is the "messy rhythms after a station change"
-report. `nextStation()` skips the same way; `stopRadio(true)` restores the
-snapshot; any manual board edit or settings change calls `stopRadio(false)` so
-the radio cannot fight the user.
+A station change is a **new song**, so it still restarts every voice at loop
+offset 0: `radioBeat()` sets `restartPending` and lets the debounced
+`scheduleApply()` call `mixer.restart(planFiles())`. Board edits no longer need
+that reset - a plain `applyPlan()` phase-locks the new stems (see the Web Audio
+pitfalls), so only radio and the realign button start from the top.
+`nextStation()` skips the same way; `stopRadio(true)` restores the snapshot; any
+manual board edit or settings change calls `stopRadio(false)` so the radio
+cannot fight the user.
 
 `mixer.restart(plan)` accepts a plan because the station's plan is already
 computed when the beat fires; `restart()` without an argument is the transport
@@ -264,16 +263,25 @@ reconstruction from Riot's interview plus shipped breakpoint data.
 * **Toggle by gain, not by stop/start.** Voices keep running while a layer is
   switched off, so re-enabling stays in sync; stop the source only when the stem
   is no longer used at all.
-* **Lock the loop region** when layers have different durations (for example
-  165 s vs 170 s): set `loopStart`/`loopEnd` to the shortest active stem so
-  layers cannot drift apart over time. `setLockLoop` updates `loopEnd` on live
-  voices instead of restarting them.
-* **A phase-preserving apply is only phase-preserving while the loop length
-  holds.** New stems start at `position % loop`; surviving voices still wrap on
-  the previous loop. `applyPlan` therefore re-seats every voice at the current
-  position when the loop length changes (log line `re-seated N voices`), or the
-  mix ends up on two bar grids. `restart(plan)` does the same at offset 0 and is
-  what a station change uses.
+* **One loop per era, not one per mix.** Stem durations differ by several
+  seconds (late era 165.0-174.0 s), so deriving the loop from the shortest
+  active stem made every combo change move the loop point and re-seat the whole
+  mix at a different `raw % loop`. The shipped soundtrack is one Wwise music
+  segment whose three layer tracks share a timeline, so the desk uses the
+  shortest stem of the whole era (`eraLoopSeconds()` -> `mixer.setLoopSeconds`)
+  and only shrinks it if an active fallback file is shorter. Plan edits now
+  never change the loop; an era switch does, once, and logs `re-seated N voices`.
+  `setLockLoop` updates `loopEnd` on live voices instead of restarting them.
+* **Join on the start clock, not on "now".** A new stem used to take
+  `position()` at apply time and then start 20 ms later, so every changed layer
+  entered one scheduling lead behind the voices that kept playing - the
+  "beats don't line up after switching a combo" report (measured -20 ms before
+  the fix). Schedule the voice at `startAt = max(now + SCHEDULE_LEAD, startedAt)`
+  and offset it with `positionAt(startAt)`, so its phase equals the grid at the
+  moment it actually starts. The stock game does the same conceptually: the
+  layer switch swaps a source inside the running segment at the current music
+  position instead of restarting it (`MUS_Map22_Gameplay_Set10_events.bnk`, the
+  212.5 s segment with three switch-driven tracks).
 * **Load stems in parallel.** `applyPlan` awaits `Promise.all`, and `load()`
   deduplicates concurrent requests for the same file. Sequential awaits made the
   first play take several seconds.
@@ -321,14 +329,23 @@ every aligned restart logs `[desk] hard start: N stems at offset 0 (song Xs)`.
 A station must rotate after `X` seconds - in the early era that is ~198 s, so a
 rotation at 165 s means a wall-clock timer crept back in. While paused the
 countdown in `.radio-copy .radio-time` must stay frozen (it moved off `em` when
-the station became a combo). A loop-length change on a live
-mix logs `[desk] re-seated N voices at Ys`. `bun tools/radio-cdp-test.mjs` runs all of this against a headless Chrome on
+the station became a combo). An era change on a live mix logs
+`[desk] re-seated N voices at Ys`; plan edits must not log it any more.
+`bun tools/radio-cdp-test.mjs` runs all of this against a headless Chrome on
 port 9222 (about four minutes, the rotation watch dominates) and saves
 `tmp/radio-fixed.png`. `bun tools/radio-vote-cdp-test.mjs` covers the combo
 station, the pinned plan, both vote buttons, the Settings ban list and restore
 (about half a minute).
 
-Reading state from the page without a debug hook: the likes record is plain
+`bun tools/phase-sync-cdp-test.mjs` is the sync gate: it reads the dev-only
+`window.__set10Desk` hook (`state`, `mixerPhases`, `applyCombo`, `setOverride`,
+`styleCombos`, `play`, `stop`; stripped from sealed builds), changes one layer,
+a combo, the board and the era, and requires every voice's `delta` against the
+transport grid to stay within 5 ms. Before the fix the first layer change
+reported -20 ms; now it is 0 ms. The test clears localStorage first, so it
+starts from the default late plan.
+
+Reading state from the page without the debug hook: the likes record is plain
 localStorage (`set10-desk-likes-v1`), so `JSON.parse(localStorage.getItem(...))`
 shows the like/ban lists. To prove the radio refuses an empty pool, seed
 `disliked` with every combo id (rebuild them from `data/music_rules.json` with
