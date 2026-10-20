@@ -283,3 +283,38 @@ The 79 KB Global PROP contains the console command string
 `TFT10_MusicRemix_GetStems`; no Lua body for it exists in the scanned Scripts
 chunks, so the layer-selection rule is probably native (or in an unextracted
 mobile resource), not a readable Lua script.
+
+## Blocker: the remaining two facts are not in the public packages
+
+The full media and the native selection rule were both pursued to the end and
+are not recoverable from the public 13.24 client/content:
+
+* **No full media.** The PC 13.24 `Map22.wad.client` has 556 banks but the
+  music bank `12c5bae31c72a039` is the 498,491-byte prefetch bank (94 RIFF
+  heads, largest 130,121 bytes); the other banks top out at 14.7 MB with
+  entries of 90 KB or less. The Android `Map22.wad.mobile` (1,855,662,119 B,
+  build `5479214`) has the same 498,491-byte bank. The current Chinese client's
+  `Map22.wad.client` (2.75 GB) still has a 438,507-byte prefetch bank. No
+  `.wem`, `RIFF` or `OggS` chunk exists outside the banks. The community AAC
+  files (OfficiallySp/tftmixer) and the local Ogg conversions are the only
+  recordings available; they are transcodes of the game's Vorbis, not the
+  streamed `.wem` files.
+* **Native selection code is packed.** `League of Legends.exe` (13.24) has
+  `.text` entropy 7.998 over 21.2 MB (`MEM_NO_READ`), and the Chinese client's
+  sections are `.ace` with entropy 8.000: the code is encrypted by the
+  anti-cheat/packer, so capstone/rizin find no xrefs to the music strings. The
+  only residue is RTTI for
+  `?AV<lambda_1>@?1???$MakeFunction@VTFTMusicManagerClient@@...` and the
+  plaintext `TFTMusicManager` / `Play_mus_map22_theme_set10` / `drums` /
+  `chords` strings in `.rdata`. The Scripts WAD (29,418 chunks) contains no
+  `TFTMusicManagerClient`, `Set_Switch_set10` or `GetStems`; the Map22 PROP
+  contains only switch/state/trait/trait-champion name tables, no rule. The
+  console string `TFT10_MusicRemix_GetStems` is a cheat command name, not a
+  script body.
+
+Consequently the actual layer-selection rule and the streamed media need one of
+the following before the "identical to the game" goal can be proven: a runtime
+dump of the decrypted client (or a hook of the music switch calls), the
+streamed `.wem` package/CDN URLs, or an official rule description. The desk's
+selection remains the unit+tier reconstruction; its playback timeline is the
+recovered bank data.
